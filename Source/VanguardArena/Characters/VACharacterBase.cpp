@@ -11,6 +11,8 @@ AVACharacterBase::AVACharacterBase()
 	
 	AbilitySystemComponent = CreateDefaultSubobject<UVAAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
+	
+	AttributeSet = CreateDefaultSubobject<UVAAttributeSet>(TEXT("AttributeSet"));
 }
 
 UAbilitySystemComponent* AVACharacterBase::GetAbilitySystemComponent() const

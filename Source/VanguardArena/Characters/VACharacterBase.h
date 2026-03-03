@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h" 
+#include "AbilitySystem/VAAttributeSet.h"
 #include "AbilitySystem/VAAbilitySystemComponent.h"
 #include "VACharacterBase.generated.h"
 
@@ -23,8 +24,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TObjectPtr<UVAAbilitySystemComponent> AbilitySystemComponent;
 	
-	//UPROPERTY()
-	//TObjectPtr<UVAAttributeSet> AttributeSet;
+	UPROPERTY()
+	TObjectPtr<UVAAttributeSet> AttributeSet;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
