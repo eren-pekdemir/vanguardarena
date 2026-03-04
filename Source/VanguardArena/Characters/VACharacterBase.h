@@ -15,10 +15,14 @@ class VANGUARDARENA_API AVACharacterBase : public ACharacter, public IAbilitySys
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AVACharacterBase();
+	
+	
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "VA|Input")
+	TObjectPtr<UVAInputConfig> InputConfig;
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
@@ -36,4 +40,9 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	
 	virtual void InitializeAbilitySystem();
+	
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	
+	void OnAbilityInputPressed(FGameplayTag InputTag);
+	void OnAbilityInputReleased(FGameplayTag InputTag);
 };
