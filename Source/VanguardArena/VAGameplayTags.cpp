@@ -69,4 +69,12 @@ void FVAGameplayTags::AddAllTags()
     // ─── EVENT TAGS ───
     AddTag(Event_Montage_MeleeHit,    "Event.Montage.MeleeHit",    "AnimNotify — kılıç vuruş anı");
     AddTag(Event_Montage_ComboWindow, "Event.Montage.ComboWindow", "AnimNotify — combo penceresi açık");
+	
+	// ─── COOLDOWN TAGS ───
+	AddTag(Cooldown_Ability_Attack_Light, "Cooldown.Ability.Attack.Light", "Light Attack cooldown");
+	AddTag(Cooldown_Ability_Attack_Heavy, "Cooldown.Ability.Attack.Heavy", "Heavy Attack cooldown");
+	AddTag(Cooldown_Ability_Skill1,      "Cooldown.Ability.Skill1",       "Skill 1 cooldown");
+	AddTag(Cooldown_Ability_Skill2,      "Cooldown.Ability.Skill2",       "Skill 2 cooldown");
+	AddTag(Cooldown_Ability_Ultimate,    "Cooldown.Ability.Ultimate",     "Ultimate cooldown");
+	AddTag(Cooldown_Ability_Dodge,       "Cooldown.Ability.Dodge",        "Dodge cooldown");
 }

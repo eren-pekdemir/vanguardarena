@@ -6,8 +6,12 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h" 
 #include "AbilitySystem/VAAttributeSet.h"
+#include "AbilitySystem/Abilities/VAGameplayAbility.h"
+#include "Input/VAInputConfig.h"
 #include "AbilitySystem/VAAbilitySystemComponent.h"
 #include "VACharacterBase.generated.h"
+
+struct FInputActionValue;
 
 UCLASS(Abstract)
 class VANGUARDARENA_API AVACharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -17,12 +21,16 @@ class VANGUARDARENA_API AVACharacterBase : public ACharacter, public IAbilitySys
 public:
 	AVACharacterBase();
 	
-	
-
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "VA|Input")
 	TObjectPtr<UVAInputConfig> InputConfig;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "VA|Input")
+	TObjectPtr<UInputAction> MoveInputAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "VA|Input")
+	TObjectPtr<UInputAction> LookInputAction;
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
@@ -45,4 +53,9 @@ protected:
 	
 	void OnAbilityInputPressed(FGameplayTag InputTag);
 	void OnAbilityInputReleased(FGameplayTag InputTag);
+	
+	virtual UInputComponent* CreatePlayerInputComponent() override;
+	
+	void MoveAction(const FInputActionValue& Value);
+	void LookAction(const FInputActionValue& Value);
 };

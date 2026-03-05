@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Input/VAEnhancedInputComponent.h"
 #include "VAPlayerController.generated.h"
 
 // Forward declaration

@@ -52,6 +52,13 @@ public:
 	FGameplayTag Event_Montage_MeleeHit; 
 	FGameplayTag Event_Montage_ComboWindow;
 	
+	FGameplayTag Cooldown_Ability_Attack_Light;
+	FGameplayTag Cooldown_Ability_Attack_Heavy;
+	FGameplayTag Cooldown_Ability_Skill1;
+	FGameplayTag Cooldown_Ability_Skill2;
+	FGameplayTag Cooldown_Ability_Ultimate;
+	FGameplayTag Cooldown_Ability_Dodge;
+	
 private:
 	static FVAGameplayTags GameplayTags;
 	
