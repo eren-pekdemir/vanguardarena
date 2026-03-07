@@ -1,7 +1,4 @@
-﻿// VAGA_MeleeAttack.h
-// Tüm melee saldırı ability'lerinin C++ base sınıfı
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/VAGameplayAbility.h"
@@ -9,6 +6,8 @@
 
 class UAnimMontage;
 class UGameplayEffect;
+class UVAComboDataAsset;
+class UVACombatComponent;
 
 UCLASS(Abstract)
 class VANGUARDARENA_API UVAGA_MeleeAttack : public UVAGameplayAbility
@@ -19,7 +18,6 @@ public:
     UVAGA_MeleeAttack();
 
 protected:
-    
     virtual void ActivateAbility(
         const FGameplayAbilitySpecHandle Handle,
         const FGameplayAbilityActorInfo* ActorInfo,
@@ -35,6 +33,9 @@ protected:
         bool bWasCancelled
     ) override;
     
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|Combo")
+    TObjectPtr<UVAComboDataAsset> ComboData;
+    
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|Melee")
     TObjectPtr<UAnimMontage> AttackMontage;
     
@@ -43,27 +44,35 @@ protected:
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|Melee")
     float TraceRadius = 50.0f;
-    
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|Melee")
     float TraceDistance = 150.0f;
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|Melee")
-    float MontagePlayRate = 1.0f;
-    
+
     UFUNCTION()
     void OnMontageCompleted();
-    
+
     UFUNCTION()
     void OnMontageCancelled();
-    
+
     UFUNCTION()
     void OnMeleeHitEvent(FGameplayEventData Payload);
     
     void PerformMeleeTrace();
-    
     void ApplyDamageToTarget(AActor* Target);
 
 private:
+    TObjectPtr<UAnimMontage> CurrentMontage;
+    float CurrentDamageMultiplier = 1.0f;
+    float CurrentPlayRate = 1.0f;
+    float CurrentTraceRadius = 50.0f;
+    float CurrentTraceDistance = 150.0f;
+    TSubclassOf<UGameplayEffect> CurrentDamageEffect;
+    
     UPROPERTY()
     TSet<TObjectPtr<AActor>> HitActors;
+    
+    TWeakObjectPtr<UVACombatComponent> CachedCombatComp;
+    
+    UVACombatComponent* GetCombatComponent() const;
 };

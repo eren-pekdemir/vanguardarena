@@ -9,6 +9,7 @@
 #include "AbilitySystem/Abilities/VAGameplayAbility.h"
 #include "Input/VAInputConfig.h"
 #include "AbilitySystem/VAAbilitySystemComponent.h"
+#include "Combat/VACombatComponent.h"
 #include "VACharacterBase.generated.h"
 
 struct FInputActionValue;
@@ -56,6 +57,12 @@ protected:
 	
 	virtual UInputComponent* CreatePlayerInputComponent() override;
 	
+	// Combat Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VA|Combat")
+	TObjectPtr<UVACombatComponent> CombatComponent;
+	
 	void MoveAction(const FInputActionValue& Value);
 	void LookAction(const FInputActionValue& Value);
+	
+	
 };

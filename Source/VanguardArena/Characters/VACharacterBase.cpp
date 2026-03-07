@@ -6,15 +6,20 @@
 #include "Input/VAInputConfig.h"
 #include "VAGameplayTags.h"
 #include "InputActionValue.h"
+#include "Combat/VACombatComponent.h"
+#include "VanguardArena/VAGameplayTags.h"
 
 
 // Sets default values
-AVACharacterBase::AVACharacterBase()
+AVACharacterBase::AVACharacterBase()	
 {
 	AbilitySystemComponent = CreateDefaultSubobject<UVAAbilitySystemComponent>(TEXT("AbilitySystemComp"));
 	AbilitySystemComponent->SetIsReplicated(true);
 
 	AttributeSet = CreateDefaultSubobject<UVAAttributeSet>(TEXT("AttributeSet"));
+	
+	// Combat Component oluştur
+	CombatComponent = CreateDefaultSubobject<UVACombatComponent>(TEXT("CombatComponent"));
 }
 
 void AVACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -81,6 +86,13 @@ void AVACharacterBase::OnAbilityInputPressed(FGameplayTag InputTag)
 {
 	if (!AbilitySystemComponent) return;
 	
+	if (CombatComponent && CombatComponent->bIsAttacking &&
+		InputTag.MatchesTagExact(FVAGameplayTags::Get().InputTag_LightAttack))
+	{
+		CombatComponent->RequestCombo();
+		return; 
+	}
+	
 	for (FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
 		if (Spec.Ability)
@@ -90,9 +102,6 @@ void AVACharacterBase::OnAbilityInputPressed(FGameplayTag InputTag)
 			if (VAAbility && VAAbility->InputTag.MatchesTagExact(InputTag))
 			{
 				AbilitySystemComponent->TryActivateAbility(Spec.Handle);
-
-				UE_LOG(LogTemp, Verbose, TEXT("VA: Ability aktive edildi — Tag: %s"),
-					*InputTag.ToString());
 				return;
 			}
 		}
