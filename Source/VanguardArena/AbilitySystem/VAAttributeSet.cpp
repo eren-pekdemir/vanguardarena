@@ -6,6 +6,7 @@
 #include "GameplayEffectExtension.h" 
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"  
+#include "VAGameplayTags.h"
 
 UVAAttributeSet::UVAAttributeSet()
 {
@@ -134,6 +135,31 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 			   CurrentHealth,
 			   NewHealth
 		   );
+			// ─── HIT REACTION TETİKLE ───
+			// Hasar aldıktan sonra hedefe hit react event'i gönder
+			if (FinalDamage > 0.0f && GetOwningActor())
+			{
+				// Gameplay Event gönder → GA_HitReact dinliyor
+				FGameplayEventData HitReactPayload;
+				HitReactPayload.EventTag = FVAGameplayTags::Get().Event_HitReact;
+
+				// Saldıranın bilgisi (yön hesaplaması için)
+				if (Data.EffectSpec.GetEffectContext().GetInstigator())
+				{
+					HitReactPayload.Instigator = Data.EffectSpec.GetEffectContext().GetInstigator();
+				}
+				HitReactPayload.Target = GetOwningActor();
+
+				// Event'i target'ın ASC'sine gönder
+				UAbilitySystemComponent* TargetASC = GetOwningAbilitySystemComponent();
+				if (TargetASC)
+				{
+					TargetASC->HandleGameplayEvent(
+						FVAGameplayTags::Get().Event_HitReact,
+						&HitReactPayload
+					);
+				}
+			}
 			
 			// if (NewHealth <= 0.0f)
 			// {

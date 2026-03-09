@@ -48,7 +48,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|Melee")
     float TraceDistance = 150.0f;
     
-
+    UPROPERTY(EditDefaultsOnly, Category = "VA|Melee")
+    TSubclassOf<UCameraShakeBase> HitCameraShake;
+    
     UFUNCTION()
     void OnMontageCompleted();
 

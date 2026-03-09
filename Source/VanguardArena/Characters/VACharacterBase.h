@@ -10,6 +10,7 @@
 #include "Input/VAInputConfig.h"
 #include "AbilitySystem/VAAbilitySystemComponent.h"
 #include "Combat/VACombatComponent.h"
+#include "Combat\VATargetLockComponent.h"
 #include "VACharacterBase.generated.h"
 
 struct FInputActionValue;
@@ -32,6 +33,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "VA|Input")
 	TObjectPtr<UInputAction> LookInputAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "VA|Input")
+	TObjectPtr<UInputAction> LockOnInputAction;
+	
+	UFUNCTION(BlueprintCallable, Category = "VA|Combat")
+	void ApplyHitStop(float Duration = 0.06f, float TimeDilation = 0.01f);
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
@@ -61,8 +68,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VA|Combat")
 	TObjectPtr<UVACombatComponent> CombatComponent;
 	
+	// Target Lock Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VA|Combat")
+	TObjectPtr<UVATargetLockComponent> TargetLockComponent;
+	
 	void MoveAction(const FInputActionValue& Value);
 	void LookAction(const FInputActionValue& Value);
 	
+	void LockOnAction(const FInputActionValue& Value);
 	
 };

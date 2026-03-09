@@ -29,6 +29,7 @@ void FVAGameplayTags::AddAllTags()
     AddTag(InputTag_Ability2,      "InputTag.Ability2",      "E / Gamepad RB — 2. yetenek input'u");
     AddTag(InputTag_Ultimate,      "InputTag.Ultimate",      "R / Gamepad LB+RB — Ultimate input'u");
     AddTag(InputTag_Dodge,         "InputTag.Dodge",         "Space / Gamepad A — Dodge input'u");
+	AddTag(InputTag_LockOn, "InputTag.LockOn", "Tab / R3 — Hedef kilitleme toggle");
 
     // ─── ABILITY TAGS ───
     AddTag(Ability_Attack_Light,   "Ability.Attack.Light",   "Hafif saldırı yeteneği");
@@ -69,6 +70,7 @@ void FVAGameplayTags::AddAllTags()
     // ─── EVENT TAGS ───
     AddTag(Event_Montage_MeleeHit,    "Event.Montage.MeleeHit",    "AnimNotify — kılıç vuruş anı");
     AddTag(Event_Montage_ComboWindow, "Event.Montage.ComboWindow", "AnimNotify — combo penceresi açık");
+	AddTag(Event_HitReact, "Event.HitReact", "Hasar alındığında hit reaction tetikler");
 	
 	// ─── COOLDOWN TAGS ───
 	AddTag(Cooldown_Ability_Attack_Light, "Cooldown.Ability.Attack.Light", "Light Attack cooldown");

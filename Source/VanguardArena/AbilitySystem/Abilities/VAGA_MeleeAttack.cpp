@@ -9,6 +9,7 @@
 #include "Combat/VACombatComponent.h"
 #include "Combat/VAComboData.h"
 #include "VAGameplayTags.h"
+#include "Characters/VACharacterBase.h"
 
 UVAGA_MeleeAttack::UVAGA_MeleeAttack()
 {
@@ -238,6 +239,20 @@ void UVAGA_MeleeAttack::PerformMeleeTrace()
             if (TargetASC)
             {
                 HitActors.Add(HitActor);
+                AVACharacterBase* OwnerChar = Cast<AVACharacterBase>(GetAvatarCharacter());
+                if (OwnerChar)
+                {
+                    OwnerChar->ApplyHitStop(0.1f, 0.01f);
+                }
+                if (HitCameraShake)
+                {
+                    APlayerController* PC = Cast<APlayerController>(
+                        GetAvatarCharacter()->GetController());
+                    if (PC)
+                    {
+                        PC->ClientStartCameraShake(HitCameraShake, 1.0f);
+                    }
+                }
                 ApplyDamageToTarget(HitActor);
                 UE_LOG(LogTemp, Log, TEXT("Combo[%d] HIT: %s (x%.1f dmg)"),
                     CachedCombatComp.IsValid() ? CachedCombatComp->ComboIndex : 0,

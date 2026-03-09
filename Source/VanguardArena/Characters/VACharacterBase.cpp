@@ -8,6 +8,8 @@
 #include "InputActionValue.h"
 #include "Combat/VACombatComponent.h"
 #include "VanguardArena/VAGameplayTags.h"
+#include "Kismet/GameplayStatics.h"
+
 
 
 // Sets default values
@@ -20,6 +22,9 @@ AVACharacterBase::AVACharacterBase()
 	
 	// Combat Component oluştur
 	CombatComponent = CreateDefaultSubobject<UVACombatComponent>(TEXT("CombatComponent"));
+	
+	// Target Lock Component oluştur
+	TargetLockComponent = CreateDefaultSubobject<UVATargetLockComponent>(TEXT("TargetLockComponent"));
 }
 
 void AVACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -40,6 +45,10 @@ void AVACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		{
 			EIC->BindAction(LookInputAction, ETriggerEvent::Triggered, this, &AVACharacterBase::LookAction);
 		}
+		if (LockOnInputAction)
+		{
+			EIC->BindAction(LockOnInputAction, ETriggerEvent::Triggered, this, &AVACharacterBase::LockOnAction);
+		}
 	}
 
 	if (!InputConfig)
@@ -55,6 +64,14 @@ void AVACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	);
 
 	UE_LOG(LogTemp, Log, TEXT("VA: Ability input'lari baglandi."));
+}
+
+void AVACharacterBase::LockOnAction(const FInputActionValue& Value)
+{
+	if (TargetLockComponent)
+	{
+		TargetLockComponent->ToggleLockOn();
+	}
 }
 
 void AVACharacterBase::MoveAction(const FInputActionValue& Value)
@@ -137,4 +154,28 @@ void AVACharacterBase::InitializeAbilitySystem()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	AbilitySystemComponent->GiveStartupAbilities(StartupAbilities);
 	AbilitySystemComponent->ApplyStartupEffects(StartupEffects);
+}
+
+void AVACharacterBase::ApplyHitStop(float Duration, float TimeDilation)
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// Global time dilation'ı düşür (tüm dünya yavaşlar)
+	UGameplayStatics::SetGlobalTimeDilation(World, TimeDilation);
+
+	// Timer ile geri al
+	FTimerHandle TimerHandle;
+	World->GetTimerManager().SetTimer(
+		TimerHandle,
+		[World]()
+		{
+			UGameplayStatics::SetGlobalTimeDilation(World, 1.0f);
+		},
+		Duration * TimeDilation,  // Gerçek süre = Duration * TimeDilation
+								   // Çünkü timer da yavaşlıyor!
+		false
+	);
+
+	UE_LOG(LogTemp, Verbose, TEXT("HitStop: %.2fs @ %.2f dilation"), Duration, TimeDilation);
 }

@@ -17,6 +17,7 @@ public:
 	FGameplayTag InputTag_Ability2;       
 	FGameplayTag InputTag_Ultimate;       
 	FGameplayTag InputTag_Dodge;
+	FGameplayTag InputTag_LockOn;  
 	
 	FGameplayTag Ability_Attack_Light;
 	FGameplayTag Ability_Attack_Heavy;
@@ -51,6 +52,7 @@ public:
 	
 	FGameplayTag Event_Montage_MeleeHit; 
 	FGameplayTag Event_Montage_ComboWindow;
+	FGameplayTag Event_HitReact;       
 	
 	FGameplayTag Cooldown_Ability_Attack_Light;
 	FGameplayTag Cooldown_Ability_Attack_Heavy;
