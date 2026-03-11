@@ -77,6 +77,8 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	AController* SourceController = nullptr;
 	ACharacter* SourceCharacter = nullptr;
 	
+
+	
 	if (SourceASC && SourceASC->AbilityActorInfo.IsValid() && SourceASC->AbilityActorInfo->AvatarActor.IsValid())
 	{
 		SourceActor = SourceASC->AbilityActorInfo->AvatarActor.Get();
@@ -114,6 +116,15 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		SetIncomingDamage(0.0f);
 		if (RawDamage > 0.0f)
 		{
+			UAbilitySystemComponent* OwnerASC = GetOwningAbilitySystemComponent();
+			if (OwnerASC && OwnerASC->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Invincible))
+			{
+				// Hasarı sıfırla — dokunulmaz
+				SetIncomingDamage(0.0f);
+				UE_LOG(LogTemp, Log, TEXT("DAMAGE BLOCKED: Target is INVINCIBLE (i-frame)"));
+				return; // Hasar pipeline'ını atla
+			}
+			
 			float CurrentArmor = GetArmor();
 			float DamageReduction = CurrentArmor / (CurrentArmor + 100.f);
 			float FinalDamage = RawDamage * (1.0f - DamageReduction);

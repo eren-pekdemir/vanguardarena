@@ -9,6 +9,7 @@
 #include "Combat/VACombatComponent.h"
 #include "VanguardArena/VAGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
+#include "AbilitySystem/Abilities/VAGA_HeavyAttack.h"
 
 
 
@@ -127,8 +128,27 @@ void AVACharacterBase::OnAbilityInputPressed(FGameplayTag InputTag)
 
 void AVACharacterBase::OnAbilityInputReleased(FGameplayTag InputTag)
 {
-	// Şimdilik boş — ileride hold-release (Heavy Attack charge) için kullanılacak
-	// İmza hazır, ihtiyaç olunca implement edilir
+	if (!AbilitySystemComponent) return;
+
+	// Heavy Attack release kontrolü
+	if (InputTag.MatchesTagExact(FVAGameplayTags::Get().InputTag_HeavyAttack))
+	{
+		// Aktif heavy attack ability'sini bul
+		for (FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+		{
+			if (Spec.IsActive())
+			{
+				UVAGA_HeavyAttack* HeavyAbility = Cast<UVAGA_HeavyAttack>(
+					Spec.GetPrimaryInstance());
+
+				if (HeavyAbility)
+				{
+					HeavyAbility->OnInputReleased();
+					return;
+				}
+			}
+		}
+	}
 }
 
 UInputComponent* AVACharacterBase::CreatePlayerInputComponent()
