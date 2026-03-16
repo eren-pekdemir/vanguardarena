@@ -3,10 +3,11 @@
 
 #include "VAAttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "GameplayEffectExtension.h" 
+#include "GameplayEffectExtension.h"
 #include "GameFramework/Character.h"
-#include "Net/UnrealNetwork.h"  
+#include "Net/UnrealNetwork.h"
 #include "VAGameplayTags.h"
+#include "Characters/VAEnemyCharacter.h"
 
 UVAAttributeSet::UVAAttributeSet()
 {
@@ -172,13 +173,30 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 				}
 			}
 			
-			// if (NewHealth <= 0.0f)
-			// {
-			// 	if (UAbilitySystemComponent* TargetASC = &Data.Target)
-			// 	{
-			// 		FGameplayTagContainer DeadTag;
-			// 	}	
-			// }
+			// Health 0 veya altina dustu -> olum
+			if (NewHealth <= 0.0f)
+			{
+				AActor* Owner = GetOwningActor();
+				if (Owner)
+				{
+					// Enemy karakter mi?
+					AVAEnemyCharacter* EnemyChar = Cast<AVAEnemyCharacter>(Owner);
+					if (EnemyChar)
+					{
+						EnemyChar->HandleDeath();
+					}
+					else
+					{
+						// Oyuncu olumu — ileride implement edilecek
+						// Simdilik sadece Dead tag ekle
+						UAbilitySystemComponent* OwnerASC = GetOwningAbilitySystemComponent();
+						if (OwnerASC)
+						{
+							OwnerASC->AddLooseGameplayTag(FVAGameplayTags::Get().State_Dead);
+						}
+					}
+				}
+			}
 		}
 	}
 	else if (Data.EvaluatedData.Attribute == GetIncomingHealingAttribute())

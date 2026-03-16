@@ -15,6 +15,7 @@ public class VanguardArena : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"AIModule",
+			"NavigationSystem",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
@@ -28,6 +29,8 @@ public class VanguardArena : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"VanguardArena",
+			"VanguardArena/AI",
+			"VanguardArena/Characters",
 			"VanguardArena/Variant_Platforming",
 			"VanguardArena/Variant_Platforming/Animation",
 			"VanguardArena/Variant_Combat",
