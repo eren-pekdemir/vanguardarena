@@ -10,6 +10,7 @@
 #include "VanguardArena/VAGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "AbilitySystem/Abilities/VAGA_HeavyAttack.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 
@@ -77,19 +78,28 @@ void AVACharacterBase::LockOnAction(const FInputActionValue& Value)
 
 void AVACharacterBase::MoveAction(const FInputActionValue& Value)
 {
+	if (!Controller) return;
+
+	// Saldırı veya dodge sırasında hareket engelle
+	if (AbilitySystemComponent)
+	{
+		if (AbilitySystemComponent->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Attacking) ||
+			AbilitySystemComponent->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Dodging))
+		{
+			return;
+		}
+	}
+
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller)
-	{
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
-	}
+	AddMovementInput(ForwardDirection, MovementVector.Y);
+	AddMovementInput(RightDirection, MovementVector.X);
 }
 
 void AVACharacterBase::LookAction(const FInputActionValue& Value)
@@ -103,25 +113,51 @@ void AVACharacterBase::LookAction(const FInputActionValue& Value)
 void AVACharacterBase::OnAbilityInputPressed(FGameplayTag InputTag)
 {
 	if (!AbilitySystemComponent) return;
-	
+
+	// ─── COMBO CHECK ───
 	if (CombatComponent && CombatComponent->bIsAttacking &&
 		InputTag.MatchesTagExact(FVAGameplayTags::Get().InputTag_LightAttack))
 	{
 		CombatComponent->RequestCombo();
-		return; 
+		return;
 	}
-	
+
+	// ─── DODGE: Input yönünü ÖNCE kaydet ───
+	if (InputTag.MatchesTagExact(FVAGameplayTags::Get().InputTag_Dodge) && CombatComponent)
+	{
+		FVector2D MoveInput = FVector2D::ZeroVector;
+
+		if (GetCharacterMovement())
+		{
+			FVector LastInput = GetCharacterMovement()->GetLastInputVector();
+			if (!LastInput.IsNearlyZero())
+			{
+				APlayerController* PC = Cast<APlayerController>(GetController());
+				if (PC)
+				{
+					FRotator CtrlRot(0, PC->GetControlRotation().Yaw, 0);
+					FVector CamFwd = FRotationMatrix(CtrlRot).GetUnitAxis(EAxis::X);
+					FVector CamRight = FRotationMatrix(CtrlRot).GetUnitAxis(EAxis::Y);
+
+					MoveInput.Y = FVector::DotProduct(LastInput, CamFwd);
+					MoveInput.X = FVector::DotProduct(LastInput, CamRight);
+				}
+			}
+		}
+
+		CombatComponent->SetDodgeInput(MoveInput);
+	}
+
+	// ─── NORMAL ABILITY AKTİVASYONU ───
 	for (FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
-		if (Spec.Ability)
-		{
-			UVAGameplayAbility* VAAbility = Cast<UVAGameplayAbility>(Spec.Ability);
+		if (!Spec.Ability) continue;
 
-			if (VAAbility && VAAbility->InputTag.MatchesTagExact(InputTag))
-			{
-				AbilitySystemComponent->TryActivateAbility(Spec.Handle);
-				return;
-			}
+		UVAGameplayAbility* VAAbility = Cast<UVAGameplayAbility>(Spec.Ability);
+		if (VAAbility && VAAbility->InputTag.MatchesTagExact(InputTag))
+		{
+			AbilitySystemComponent->TryActivateAbility(Spec.Handle);
+			return;
 		}
 	}
 }

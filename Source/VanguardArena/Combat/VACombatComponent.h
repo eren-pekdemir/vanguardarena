@@ -41,4 +41,22 @@ public:
     
     UPROPERTY(BlueprintReadOnly, Category = "VA|Combo")
     bool bIsAttacking = false;
+    
+    // ─── DODGE INPUT CACHE ───
+    // Dodge tetiklenmeden ÖNCE WASD yönü buraya kaydedilir
+    // Dodge ability activate olduğunda buradan okur
+    FVector2D CachedDodgeInput = FVector2D::ZeroVector;
+    bool bHasDodgeInput = false;
+
+    void SetDodgeInput(const FVector2D& Input)
+    {
+        CachedDodgeInput = Input;
+        bHasDodgeInput = true;
+    }
+
+    void ClearDodgeInput()
+    {
+        CachedDodgeInput = FVector2D::ZeroVector;
+        bHasDodgeInput = false;
+    }
 };

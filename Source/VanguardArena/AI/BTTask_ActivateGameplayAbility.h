@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
 #include "GameplayTagContainer.h"
+#include "AbilitySystemComponent.h"
 #include "BTTask_ActivateGameplayAbility.generated.h"
 
 class UAbilitySystemComponent;

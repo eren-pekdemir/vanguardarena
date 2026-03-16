@@ -46,7 +46,8 @@ void FVAGameplayTags::AddAllTags()
     AddTag(State_Invincible,       "State.Invincible",       "Hasar almaz — dodge i-frame");
     AddTag(State_Channeling,       "State.Channeling",       "Kanal açıyor — hareket engelli");
     AddTag(State_Attacking,        "State.Attacking",        "Saldırı animasyonu sırasında");
-
+	AddTag(State_Dodging, "State.Dodging", "Dodge sırasında — WASD engelli");
+	
     // ─── DAMAGE TAGS ───
     AddTag(Damage_Physical,        "Damage.Physical",        "Fiziksel hasar türü");
     AddTag(Damage_Fire,            "Damage.Fire",            "Ateş hasarı türü");

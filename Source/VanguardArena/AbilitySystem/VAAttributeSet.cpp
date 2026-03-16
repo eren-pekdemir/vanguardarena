@@ -174,8 +174,12 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 			}
 			
 			// Health 0 veya altina dustu -> olum
-			if (NewHealth <= 0.0f)
+			if (GetHealth() <= 0.0f)
 			{
+				SetHealth(0.0f);
+
+				// Ölüm event'i gönder
+				// Ölüm işlemini karakter sınıfına bırak (enemy vs player farklı davranır)
 				AActor* Owner = GetOwningActor();
 				if (Owner)
 				{
@@ -187,12 +191,12 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 					}
 					else
 					{
-						// Oyuncu olumu — ileride implement edilecek
-						// Simdilik sadece Dead tag ekle
-						UAbilitySystemComponent* OwnerASC = GetOwningAbilitySystemComponent();
-						if (OwnerASC)
+						// Oyuncu ölümü — ileride implement edilecek
+						// Şimdilik sadece Dead tag ekle
+						UAbilitySystemComponent* DeathASC = GetOwningAbilitySystemComponent();
+						if (DeathASC)
 						{
-							OwnerASC->AddLooseGameplayTag(FVAGameplayTags::Get().State_Dead);
+							DeathASC->AddLooseGameplayTag(FVAGameplayTags::Get().State_Dead);
 						}
 					}
 				}

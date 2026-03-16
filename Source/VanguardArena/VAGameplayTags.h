@@ -32,6 +32,7 @@ public:
 	FGameplayTag State_Invincible;       
 	FGameplayTag State_Channeling;       
 	FGameplayTag State_Attacking;
+	FGameplayTag State_Dodging; 
 	
 	FGameplayTag Damage_Physical;
 	FGameplayTag Damage_Fire;

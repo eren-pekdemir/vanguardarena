@@ -65,7 +65,7 @@ bool UVAAbilitySystemComponent::IsAbilityActiveByTag(FGameplayTag AbilityTag) co
 {
 	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
 	{
-		if (Spec.IsActive() && Spec.Ability->AbilityTags.HasTag(AbilityTag))
+		if (Spec.IsActive() && Spec.Ability->GetAssetTags().HasTag(AbilityTag))
 		{
 			return true;
 		}

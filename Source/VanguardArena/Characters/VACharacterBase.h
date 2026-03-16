@@ -11,12 +11,13 @@
 #include "AbilitySystem/VAAbilitySystemComponent.h"
 #include "Combat/VACombatComponent.h"
 #include "Combat\VATargetLockComponent.h"
+#include "GenericTeamAgentInterface.h"
 #include "VACharacterBase.generated.h"
 
 struct FInputActionValue;
 
 UCLASS(Abstract)
-class VANGUARDARENA_API AVACharacterBase : public ACharacter, public IAbilitySystemInterface
+class VANGUARDARENA_API AVACharacterBase : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -39,6 +40,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "VA|Combat")
 	void ApplyHitStop(float Duration = 0.06f, float TimeDilation = 0.01f);
+	
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamId) override { TeamId = NewTeamId; }
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
@@ -76,5 +80,8 @@ protected:
 	void LookAction(const FInputActionValue& Value);
 	
 	void LockOnAction(const FInputActionValue& Value);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "VA|Team")
+	FGenericTeamId TeamId = FGenericTeamId(0); // 0 = Oyuncu, 1 = Düşman
 	
 };

@@ -2,261 +2,205 @@
 #include "Combat/VATargetLockComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "VAGameplayTags.h"
 #include "Engine/OverlapResult.h"
+#include "VAGameplayTags.h"
 
 UVATargetLockComponent::UVATargetLockComponent()
 {
-    // Lock-on aktifken her frame kamera güncellenmeli
-    PrimaryComponentTick.bCanEverTick = true;
-    // Başlangıçta tick kapalı — lock-on aktive olunca açılır
-    PrimaryComponentTick.bStartWithTickEnabled = false;
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
 void UVATargetLockComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-    FActorComponentTickFunction* ThisTickFunction)
+	FActorComponentTickFunction* ThisTickFunction)
 {
-    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if (!bIsLockedOn || !LockedTarget)
-    {
-        DisableLockOn();
-        return;
-    }
+	if (!bIsLockedOn || !LockedTarget)
+	{
+		DisableLockOn();
+		return;
+	}
 
-    // Hedef hala geçerli mi?
-    if (!IsTargetValid(LockedTarget))
-    {
-        DisableLockOn();
-        return;
-    }
+	if (!IsTargetValid(LockedTarget))
+	{
+		DisableLockOn();
+		return;
+	}
 
-    // Kamerayı ve karakteri hedefe doğru döndür
-    UpdateCameraRotation(DeltaTime);
-    UpdateCharacterRotation(DeltaTime);
+	ACharacter* Owner = GetOwnerCharacter();
+	if (!Owner) return;
+
+	APlayerController* PC = Cast<APlayerController>(Owner->GetController());
+	if (!PC) return;
+
+	// ─── HEDEFE BAKIŞ AÇISI HESAPLA (SADECE YAW) ───
+	FVector OwnerLoc = Owner->GetActorLocation();
+	FVector TargetLoc = LockedTarget->GetActorLocation();
+
+	FVector ToTarget = TargetLoc - OwnerLoc;
+	ToTarget.Z = 0.0f; // Sadece yatay düzlem
+
+	if (ToTarget.IsNearlyZero()) return;
+
+	float DesiredYaw = ToTarget.Rotation().Yaw;
+
+	// ─── MEVCUT CONTROLLER ROTATION ───
+	FRotator CurrentRot = PC->GetControlRotation();
+
+	// ─── İLK FRAME: Ani atlama yapma, sadece flag sıfırla ───
+	if (bFirstTickAfterLock)
+	{
+		bFirstTickAfterLock = false;
+		// İlk frame'de büyük açı farkı olabilir, interp'e bırak
+	}
+
+	// ─── YAW INTERP — FMath::RInterpTo açı sarmasını düzgün yapar ───
+	// FMath::FInterpTo KULLANMA — 350°→10° geçişinde 360 döner!
+	// FMath::RInterpTo rotator interp yapar, en kısa yolu seçer
+	FRotator DesiredRot(CurrentRot.Pitch, DesiredYaw, 0.0f);
+	FRotator NewRot = FMath::RInterpTo(CurrentRot, DesiredRot, DeltaTime, YawInterpSpeed);
+
+	// Pitch'i OYUNCUNUN KONTROLÜNDE BIRAK — sadece yaw'ı güncelle
+	PC->SetControlRotation(FRotator(CurrentRot.Pitch, NewRot.Yaw, 0.0f));
 }
 
 void UVATargetLockComponent::ToggleLockOn()
 {
-    if (bIsLockedOn)
-    {
-        DisableLockOn();
-    }
-    else
-    {
-        // En yakın hedefi bul
-        AActor* BestTarget = FindBestTarget();
+	if (bIsLockedOn)
+	{
+		DisableLockOn();
+		return;
+	}
 
-        if (BestTarget)
-        {
-            LockedTarget = BestTarget;
-            bIsLockedOn = true;
+	AActor* Target = FindBestTarget();
+	if (!Target)
+	{
+		UE_LOG(LogTemp, Log, TEXT("LockOn: Hedef bulunamadı"));
+		return;
+	}
 
-            // Tick'i aç — kamera güncellemesi başlasın
-            SetComponentTickEnabled(true);
+	LockedTarget = Target;
+	bIsLockedOn = true;
+	bFirstTickAfterLock = true;
+	SetComponentTickEnabled(true);
 
-            // Karakter hareket modunu değiştir — strafe
-            ACharacter* Owner = GetOwnerCharacter();
-            if (Owner)
-            {
-                // OrientRotationToMovement kapat → karakter hareket yönüne değil,
-                // controller yönüne bakar (yani hedefe)
-                Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
-                Owner->bUseControllerRotationYaw = true;
-            }
+	// Karakter hedefe doğru baksın (hareket yönü değil, controller yönü)
+	ACharacter* Owner = GetOwnerCharacter();
+	if (Owner)
+	{
+		Owner->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Owner->bUseControllerRotationYaw = true;
 
-            // Delegate tetikle (UI marker göster)
-            OnTargetLockChanged.Broadcast(LockedTarget);
+		// Karakter rotation hızını ayarla — yumuşak dönüş
+		Owner->GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	}
 
-            UE_LOG(LogTemp, Log, TEXT("Lock-On: %s KİLİTLENDİ"), *LockedTarget->GetName());
-        }
-        else
-        {
-            UE_LOG(LogTemp, Log, TEXT("Lock-On: Hedef bulunamadı"));
-        }
-    }
+	OnTargetLockChanged.Broadcast(LockedTarget);
+	UE_LOG(LogTemp, Log, TEXT("LockOn: %s KİLİTLENDİ"), *LockedTarget->GetName());
 }
 
 void UVATargetLockComponent::DisableLockOn()
 {
-    if (!bIsLockedOn) return;
+	if (!bIsLockedOn) return;
 
-    bIsLockedOn = false;
-    LockedTarget = nullptr;
+	bIsLockedOn = false;
+	LockedTarget = nullptr;
+	SetComponentTickEnabled(false);
 
-    // Tick'i kapat — gereksiz güncelleme yapma
-    SetComponentTickEnabled(false);
+	ACharacter* Owner = GetOwnerCharacter();
+	if (Owner)
+	{
+		Owner->GetCharacterMovement()->bOrientRotationToMovement = true;
+		Owner->bUseControllerRotationYaw = false;
 
-    // Karakter hareket modunu geri al — normal
-    ACharacter* Owner = GetOwnerCharacter();
-    if (Owner)
-    {
-        Owner->GetCharacterMovement()->bOrientRotationToMovement = true;
-        Owner->bUseControllerRotationYaw = false;
-    }
+		// Rotation rate geri al
+		Owner->GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f);
+	}
 
-    // Delegate tetikle (UI marker gizle)
-    OnTargetLockChanged.Broadcast(nullptr);
-
-    UE_LOG(LogTemp, Log, TEXT("Lock-On: KİLİT KALDIRILDI"));
-}
-
-void UVATargetLockComponent::SwitchTarget(float Direction)
-{
-    // Şimdilik basit: kilidi kaldır, yeniden en yakını bul
-    // İleride sağ/sol yön bazlı hedef değiştirme eklenebilir
-    if (!bIsLockedOn) return;
-
-    AActor* OldTarget = LockedTarget;
-    DisableLockOn();
-    ToggleLockOn();
-
-    // Aynı hedef tekrar kilitlenirse ve başka hedef varsa alternatif bul
-    // Bu basit implementasyon — ileride geliştirilir
+	OnTargetLockChanged.Broadcast(nullptr);
+	UE_LOG(LogTemp, Log, TEXT("LockOn: KİLİT KALDIRILDI"));
 }
 
 AActor* UVATargetLockComponent::FindBestTarget() const
 {
-    ACharacter* Owner = GetOwnerCharacter();
-    if (!Owner) return nullptr;
+	ACharacter* Owner = GetOwnerCharacter();
+	if (!Owner) return nullptr;
 
-    FVector OwnerLocation = Owner->GetActorLocation();
+	FVector Origin = Owner->GetActorLocation();
 
-    // SphereOverlap ile çevredeki pawn'ları bul
-    TArray<FOverlapResult> Overlaps;
-    FCollisionShape Shape = FCollisionShape::MakeSphere(SearchRadius);
+	TArray<FOverlapResult> Overlaps;
+	FCollisionShape Shape = FCollisionShape::MakeSphere(SearchRadius);
 
-    bool bFound = GetWorld()->OverlapMultiByChannel(
-        Overlaps,
-        OwnerLocation,
-        FQuat::Identity,
-        ECollisionChannel::ECC_Pawn,
-        Shape
-    );
+	bool bFound = GetWorld()->OverlapMultiByChannel(
+		Overlaps, Origin, FQuat::Identity, ECollisionChannel::ECC_Pawn, Shape);
 
-    if (!bFound) return nullptr;
+	if (!bFound) return nullptr;
 
-    AActor* BestTarget = nullptr;
-    float BestScore = MAX_FLT;
+	// Kamera ileri yönü
+	FVector CamFwd = FVector::ForwardVector;
+	APlayerController* PC = Cast<APlayerController>(Owner->GetController());
+	if (PC)
+	{
+		FRotator CamRot = PC->GetControlRotation();
+		CamFwd = FRotationMatrix(FRotator(0, CamRot.Yaw, 0)).GetUnitAxis(EAxis::X);
+	}
 
-    // Kamera yönü — kameranın baktığı yöne yakın hedefler öncelikli
-    FVector CameraForward = FVector::ZeroVector;
-    APlayerController* PC = Cast<APlayerController>(Owner->GetController());
-    if (PC)
-    {
-        CameraForward = PC->GetControlRotation().Vector();
-    }
+	AActor* Best = nullptr;
+	float BestScore = MAX_FLT;
 
-    for (const FOverlapResult& Overlap : Overlaps)
-    {
-        AActor* CandidateActor = Overlap.GetActor();
-        if (!CandidateActor || CandidateActor == Owner) continue;
+	for (const FOverlapResult& Overlap : Overlaps)
+	{
+		AActor* Candidate = Overlap.GetActor();
+		if (!Candidate || Candidate == Owner) continue;
 
-        // GAS entity mi? (ASC var mı)
-        UAbilitySystemComponent* TargetASC =
-            UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(CandidateActor);
-        if (!TargetASC) continue;
+		UAbilitySystemComponent* TargetASC =
+			UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Candidate);
+		if (!TargetASC) continue;
 
-        // Ölü mü?
-        if (TargetASC->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Dead))
-            continue;
+		if (TargetASC->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Dead))
+			continue;
 
-        // Mesafe
-        float Distance = FVector::Dist(OwnerLocation, CandidateActor->GetActorLocation());
-        if (Distance > SearchRadius) continue;
+		float Dist = FVector::Dist(Origin, Candidate->GetActorLocation());
+		if (Dist > SearchRadius || Dist < 1.0f) continue;
 
-        // Skor: mesafe + kamera yönüne yakınlık
-        // Düşük skor = daha iyi hedef
-        FVector DirectionToTarget = (CandidateActor->GetActorLocation() - OwnerLocation).GetSafeNormal();
-        float DotProduct = FVector::DotProduct(CameraForward, DirectionToTarget);
-        
-        // DotProduct: 1.0 = tam önünde, -1.0 = arkasında
-        // Mesafeyi ağırlıklı skor: yakın ve önünde olan hedef en iyi
-        float Score = Distance * (1.0f - DotProduct * 0.5f);
+		FVector Dir = (Candidate->GetActorLocation() - Origin).GetSafeNormal();
+		Dir.Z = 0.0f;
+		float Dot = FVector::DotProduct(CamFwd, Dir.GetSafeNormal());
 
-        if (Score < BestScore)
-        {
-            BestScore = Score;
-            BestTarget = CandidateActor;
-        }
-    }
+		float Score = Dist * (1.0f - Dot * 0.5f);
 
-    return BestTarget;
+		if (Score < BestScore)
+		{
+			BestScore = Score;
+			Best = Candidate;
+		}
+	}
+
+	return Best;
 }
 
 bool UVATargetLockComponent::IsTargetValid(AActor* Target) const
 {
-    if (!Target) return false;
-    if (Target->IsPendingKillPending()) return false;
+	if (!Target || Target->IsPendingKillPending()) return false;
 
-    // Mesafe kontrolü
-    ACharacter* Owner = GetOwnerCharacter();
-    if (!Owner) return false;
+	ACharacter* Owner = GetOwnerCharacter();
+	if (!Owner) return false;
 
-    float Distance = FVector::Dist(Owner->GetActorLocation(), Target->GetActorLocation());
-    if (Distance > MaxLockDistance) return false;
+	float Dist = FVector::Dist(Owner->GetActorLocation(), Target->GetActorLocation());
+	if (Dist > MaxLockDistance) return false;
 
-    // Ölü mü?
-    UAbilitySystemComponent* TargetASC =
-        UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
-    if (TargetASC && TargetASC->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Dead))
-    {
-        return false;
-    }
+	UAbilitySystemComponent* TargetASC =
+		UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+	if (TargetASC && TargetASC->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Dead))
+		return false;
 
-    return true;
-}
-
-void UVATargetLockComponent::UpdateCameraRotation(float DeltaTime)
-{
-    ACharacter* Owner = GetOwnerCharacter();
-    if (!Owner || !LockedTarget) return;
-
-    APlayerController* PC = Cast<APlayerController>(Owner->GetController());
-    if (!PC) return;
-
-    // Hedefe bakış rotasyonu hesapla
-    FVector Start = Owner->GetActorLocation();
-    FVector End = LockedTarget->GetActorLocation();
-
-    // Hedefin biraz üstüne bak (göğüs/baş hizası)
-    End.Z += 50.0f;
-
-    FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(Start, End);
-
-    // Mevcut controller rotasyonuyla yumuşak geçiş (lerp)
-    FRotator CurrentRotation = PC->GetControlRotation();
-    FRotator NewRotation = FMath::RInterpTo(CurrentRotation, LookAtRotation, DeltaTime, CameraRotationSpeed);
-
-    // Sadece Yaw ve Pitch güncelle (Roll dokunma)
-    PC->SetControlRotation(FRotator(NewRotation.Pitch, NewRotation.Yaw, 0.0f));
-}
-
-void UVATargetLockComponent::UpdateCharacterRotation(float DeltaTime)
-{
-    ACharacter* Owner = GetOwnerCharacter();
-    if (!Owner || !LockedTarget) return;
-
-    // Karakter hedefe doğru baksın
-    FVector Direction = (LockedTarget->GetActorLocation() - Owner->GetActorLocation()).GetSafeNormal();
-    Direction.Z = 0.0f; // Sadece yatay düzlemde
-
-    if (!Direction.IsNearlyZero())
-    {
-        FRotator TargetRotation = Direction.Rotation();
-        FRotator CurrentRotation = Owner->GetActorRotation();
-        FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, CameraRotationSpeed);
-
-        Owner->SetActorRotation(FRotator(0.0f, NewRotation.Yaw, 0.0f));
-    }
+	return true;
 }
 
 ACharacter* UVATargetLockComponent::GetOwnerCharacter() const
 {
-    return Cast<ACharacter>(GetOwner());
+	return Cast<ACharacter>(GetOwner());
 }
