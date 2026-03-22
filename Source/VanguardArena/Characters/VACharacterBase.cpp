@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "AbilitySystem/Abilities/VAGA_HeavyAttack.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "AbilitySystem/Abilities/VAGA_ChannelAbility.h"
 
 
 
@@ -185,6 +186,20 @@ void AVACharacterBase::OnAbilityInputReleased(FGameplayTag InputTag)
 			}
 		}
 	}
+	
+	for (FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+	{
+		if (Spec.IsActive())
+		{
+			UVAGA_ChannelAbility* ChannelAbility = Cast<UVAGA_ChannelAbility>(
+				Spec.GetPrimaryInstance());
+			if (ChannelAbility)
+			{
+				ChannelAbility->OnInputReleased();
+				return;
+			}
+		}
+	}
 }
 
 UInputComponent* AVACharacterBase::CreatePlayerInputComponent()
@@ -210,6 +225,17 @@ void AVACharacterBase::InitializeAbilitySystem()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	AbilitySystemComponent->GiveStartupAbilities(StartupAbilities);
 	AbilitySystemComponent->ApplyStartupEffects(StartupEffects);
+	
+	if (ManaRegenEffect && AbilitySystemComponent)
+	{
+		FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
+		FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(
+			ManaRegenEffect, 1, Context);
+		if (Spec.IsValid())
+		{
+			AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+		}
+	}
 }
 
 void AVACharacterBase::ApplyHitStop(float Duration, float TimeDilation)

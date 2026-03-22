@@ -294,4 +294,18 @@ void UVAGA_MeleeAttack::ApplyDamageToTarget(AActor* Target)
             TargetASC
         );
     }
+    
+    for (const TSubclassOf<UGameplayEffect>& AdditionalEffect : AdditionalEffectsOnHit)
+    {
+        if (AdditionalEffect)
+        {
+            FGameplayEffectSpecHandle AdditionalSpec = SourceASC->MakeOutgoingSpec(
+                AdditionalEffect, 1, EffectContext);
+            if (AdditionalSpec.IsValid())
+            {
+                SourceASC->ApplyGameplayEffectSpecToTarget(
+                    *AdditionalSpec.Data.Get(), TargetASC);
+            }
+        }
+    }
 }

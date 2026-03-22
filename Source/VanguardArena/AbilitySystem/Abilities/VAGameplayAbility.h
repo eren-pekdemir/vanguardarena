@@ -31,6 +31,13 @@ public:
 
    
     EVAAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
+    
+    UFUNCTION(BlueprintCallable, Category = "VA|Damage")
+    void ApplyAOEDamage(
+        const FVector& Center,
+        float Radius,
+        TSubclassOf<UGameplayEffect> EffectClass,
+        const TArray<AActor*>& IgnoreActors);
 
 protected:
     virtual void ActivateAbility(
@@ -53,4 +60,7 @@ protected:
     
     UFUNCTION(BlueprintCallable, Category = "VA|Ability")
     UAbilitySystemComponent* GetAvatarASC() const;
+    
+    UPROPERTY(EditDefaultsOnly, Category = "VA|Effects")
+    TArray<TSubclassOf<UGameplayEffect>> AdditionalEffectsOnHit;
 };

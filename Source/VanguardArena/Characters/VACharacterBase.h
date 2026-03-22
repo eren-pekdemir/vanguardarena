@@ -84,4 +84,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "VA|Team")
 	FGenericTeamId TeamId = FGenericTeamId(0); // 0 = Oyuncu, 1 = Düşman
 	
+	UPROPERTY(EditDefaultsOnly, Category = "VA|Stats")
+	TSubclassOf<UGameplayEffect> ManaRegenEffect;
+	
 };

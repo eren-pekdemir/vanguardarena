@@ -46,7 +46,8 @@ void FVAGameplayTags::AddAllTags()
     AddTag(State_Invincible,       "State.Invincible",       "Hasar almaz — dodge i-frame");
     AddTag(State_Channeling,       "State.Channeling",       "Kanal açıyor — hareket engelli");
     AddTag(State_Attacking,        "State.Attacking",        "Saldırı animasyonu sırasında");
-	AddTag(State_Dodging, "State.Dodging", "Dodge sırasında — WASD engelli");
+	AddTag(State_Dodging, "State.Dodging", "Dodge sırasında — WASD engelli");	
+	
 	
     // ─── DAMAGE TAGS ───
     AddTag(Damage_Physical,        "Damage.Physical",        "Fiziksel hasar türü");
@@ -55,18 +56,21 @@ void FVAGameplayTags::AddAllTags()
     AddTag(Damage_Lightning,       "Damage.Lightning",       "Yıldırım hasarı türü");
 
     // ─── BUFF / DEBUFF TAGS ───
+	AddTag(Buff_AttackPower,       "Buff.AttackPower",       "Saldırı gücü artışı aktif");
     AddTag(Buff_AttackSpeed,       "Buff.AttackSpeed",       "Saldırı hızı artışı aktif");
     AddTag(Buff_Armor,             "Buff.Armor",             "Zırh artışı aktif");
     AddTag(Buff_Regen,             "Buff.Regen",             "Can yenileme aktif");
     AddTag(Debuff_Burn,            "Debuff.Burn",            "Yanma — zamanla hasar");
     AddTag(Debuff_Slow,            "Debuff.Slow",            "Yavaşlama aktif");
     AddTag(Debuff_Stun,            "Debuff.Stun",            "Sersemletme aktif");
-
+	AddTag(Debuff_Poison,            "Debuff.Poison",            "Zehir aktif");
+	
     // ─── GAMEPLAY CUE TAGS ───
-    AddTag(GameplayCue_Hit_Physical, "GameplayCue.Hit.Physical", "Fiziksel vuruş efekti");
-    AddTag(GameplayCue_Hit_Fire,     "GameplayCue.Hit.Fire",     "Ateş vuruşu efekti");
-    AddTag(GameplayCue_Buff_Applied, "GameplayCue.Buff.Applied", "Buff uygulama efekti");
-    AddTag(GameplayCue_Death,        "GameplayCue.Death",        "Ölüm efekti");
+	AddTag(GameplayCue_Hit_Physical, "GameplayCue.Hit.Physical", "Fiziksel vuruş efekti");
+	AddTag(GameplayCue_Hit_Fire, "GameplayCue.Hit.Fire", "Ateş vuruş efekti");
+	AddTag(GameplayCue_Buff_Armor, "GameplayCue.Buff.Armor", "Armor buff glow");
+	AddTag(GameplayCue_Debuff_Burn, "GameplayCue.Debuff.Burn", "Yanma DOT efekti");
+	AddTag(GameplayCue_Death, "GameplayCue.Death", "Ölüm efekti");
 
     // ─── EVENT TAGS ───
     AddTag(Event_Montage_MeleeHit,    "Event.Montage.MeleeHit",    "AnimNotify — kılıç vuruş anı");
@@ -80,4 +84,11 @@ void FVAGameplayTags::AddAllTags()
 	AddTag(Cooldown_Ability_Skill2,      "Cooldown.Ability.Skill2",       "Skill 2 cooldown");
 	AddTag(Cooldown_Ability_Ultimate,    "Cooldown.Ability.Ultimate",     "Ultimate cooldown");
 	AddTag(Cooldown_Ability_Dodge,       "Cooldown.Ability.Dodge",        "Dodge cooldown");
+	
+	AddTag(Ability_Boss_ComboAttack, "Ability.Boss.ComboAttack", "Boss combo saldırı");
+	AddTag(Ability_Boss_AOESlam, "Ability.Boss.AOESlam", "Boss AOE yere vuruş");
+	
+	AddTag(Event_Montage_SpawnProjectile, "Event.Montage.SpawnProjectile", "Mermi fırlatma anı");
+	AddTag(Event_Montage_AOE, "Event.Montage.AOE", "AOE tetikleme anı");
+	
 }

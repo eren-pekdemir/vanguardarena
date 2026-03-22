@@ -6,6 +6,8 @@
 
 #include "CoreMinimal.h"
 #include "Characters/VACharacterBase.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "Abilities/GameplayAbility.h"
 #include "VAEnemyCharacter.generated.h"
 
 UCLASS()
@@ -15,22 +17,25 @@ class VANGUARDARENA_API AVAEnemyCharacter : public AVACharacterBase
 
 public:
 	AVAEnemyCharacter();
-	
+    
+	// Bu düşmanın kullanacağı Behavior Tree (Blueprint'te atanır)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|AI")
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+    
 	UFUNCTION(BlueprintCallable, Category = "VA|AI")
-	void HandleDeath();
+	virtual void HandleDeath();
 
 protected:
 	virtual void BeginPlay() override;
-	
-	// AI başlangıç stat'ları — blueprint'te atanır
+    
+	// AI başlangıç stat'ları
 	UPROPERTY(EditDefaultsOnly, Category = "VA|AI|Stats")
 	TSubclassOf<UGameplayEffect> DefaultStats;
 
-	// Ability'leri ver
+	// Düşmana verilecek ability'ler (Blueprint'te atanır)
+	UPROPERTY(EditDefaultsOnly, Category = "VA|AI")
+	TArray<TSubclassOf<UGameplayAbility>> EnemyStartupAbilities;
+
 	void GiveStartupAbilities();
-
-	// Stat'ları uygula
 	void ApplyDefaultStats();
-	
-
 };

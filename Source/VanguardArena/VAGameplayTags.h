@@ -32,23 +32,26 @@ public:
 	FGameplayTag State_Invincible;       
 	FGameplayTag State_Channeling;       
 	FGameplayTag State_Attacking;
-	FGameplayTag State_Dodging; 
+	FGameplayTag State_Dodging;
 	
 	FGameplayTag Damage_Physical;
 	FGameplayTag Damage_Fire;
 	FGameplayTag Damage_Ice;
 	FGameplayTag Damage_Lightning;
 	
+	FGameplayTag Buff_AttackPower;
 	FGameplayTag Buff_AttackSpeed;
 	FGameplayTag Buff_Armor;
 	FGameplayTag Buff_Regen;
 	FGameplayTag Debuff_Burn;
 	FGameplayTag Debuff_Slow;
 	FGameplayTag Debuff_Stun;
+	FGameplayTag Debuff_Poison;
 	
 	FGameplayTag GameplayCue_Hit_Physical;
 	FGameplayTag GameplayCue_Hit_Fire;
-	FGameplayTag GameplayCue_Buff_Applied;
+	FGameplayTag GameplayCue_Buff_Armor;
+	FGameplayTag GameplayCue_Debuff_Burn;
 	FGameplayTag GameplayCue_Death;
 	
 	FGameplayTag Event_Montage_MeleeHit; 
@@ -61,6 +64,12 @@ public:
 	FGameplayTag Cooldown_Ability_Skill2;
 	FGameplayTag Cooldown_Ability_Ultimate;
 	FGameplayTag Cooldown_Ability_Dodge;
+	
+	FGameplayTag Ability_Boss_ComboAttack;
+	FGameplayTag Ability_Boss_AOESlam;
+	
+	FGameplayTag Event_Montage_SpawnProjectile;
+	FGameplayTag Event_Montage_AOE;
 	
 private:
 	static FVAGameplayTags GameplayTags;

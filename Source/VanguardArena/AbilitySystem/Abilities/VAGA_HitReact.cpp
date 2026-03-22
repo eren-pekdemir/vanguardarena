@@ -17,6 +17,7 @@ UVAGA_HitReact::UVAGA_HitReact()
     // Hit react sırasında SALDIRI iptal olsun
     // Böylece düşman vurulunca saldırısı kesilir
     CancelAbilitiesWithTag.AddTag(FVAGameplayTags::Get().State_Attacking);
+    CancelAbilitiesWithTag.AddTag(FVAGameplayTags::Get().State_Channeling);
 }
 
 void UVAGA_HitReact::ActivateAbility(
