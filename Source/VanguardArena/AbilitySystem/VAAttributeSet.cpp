@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "VAGameplayTags.h"
+#include "Perception/AISense_Damage.h"
 #include "Characters/VAEnemyCharacter.h"
 
 UVAAttributeSet::UVAAttributeSet()
@@ -135,6 +136,24 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 			float CurrentHealth = GetHealth();
 			float NewHealth = FMath::Max(CurrentHealth - FinalDamage, 0.0f);
 			SetHealth(NewHealth);
+			
+			if (FinalDamage > 0.0f)
+			{
+				AActor* DamagedActor = GetOwningActor();
+				AActor* InstigatorActor = Data.EffectSpec.GetEffectContext().GetInstigator();
+    
+				if (DamagedActor && InstigatorActor)
+				{
+					UAISense_Damage::ReportDamageEvent(
+						DamagedActor->GetWorld(),
+						DamagedActor,       // Hasar alan
+						InstigatorActor,    // Hasar veren
+						FinalDamage,        // Hasar miktarı
+						DamagedActor->GetActorLocation(),      // Hasar alınan konum
+						InstigatorActor->GetActorLocation()     // Saldıranın konumu
+					);
+				}
+			}
 			
 			UE_LOG(LogTemp, Log, 
 			   TEXT("[Damage] %s → %s | Raw: %.1f | Armor: %.1f (%.0f%% reduction) | Final: %.1f | HP: %.1f → %.1f"),

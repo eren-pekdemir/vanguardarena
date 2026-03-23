@@ -4,6 +4,9 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "Perception/AISenseConfig_Hearing.h"
+#include "Perception/AISenseConfig_Damage.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "VAAIController.generated.h"
 
 class UBehaviorTreeComponent;
@@ -59,9 +62,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "VA|AI")
 	TObjectPtr<UAIPerceptionComponent> AIPerceptionComp;
 
-	// Sight config
+	// Sense
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
+	
+	UPROPERTY()
+	TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
+	
+	UPROPERTY()
+	TObjectPtr<UAISenseConfig_Damage> DamageConfig;
 
 	// Perception güncelleme callback
 	UFUNCTION()
@@ -70,4 +79,10 @@ protected:
 	// ─── TEAM ───
 	// Düşmanlar Team 1, Oyuncu Team 0
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+	
+
+private:
+	FGenericTeamId TeamId;
+	
+	void SetTargetInBlackboard(AActor* Target);
 };

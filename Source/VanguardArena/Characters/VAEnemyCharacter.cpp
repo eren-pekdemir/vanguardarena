@@ -17,6 +17,11 @@ AVAEnemyCharacter::AVAEnemyCharacter()
 
 	// AI tarafından otomatik possess edilsin
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	
+	TeamId = FGenericTeamId(1); 
+	AIControllerClass = AVAAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	
 }
 
 void AVAEnemyCharacter::BeginPlay()

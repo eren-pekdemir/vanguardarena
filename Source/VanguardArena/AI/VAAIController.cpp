@@ -30,10 +30,27 @@ AVAAIController::AVAAIController()
 	SightConfig->PeripheralVisionAngleDegrees = 60.0f; // Görüş açısı (120 derece toplam)
 	SightConfig->SetMaxAge(5.0f);                   // Hafıza süresi (5sn görmezse unutur)
 
-	// Düşman tespiti — tüm takımları algıla
+	// Düşman tespiti 
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = false;
+	
+	// ─── DAMAGE CONFIG ───
+	DamageConfig = CreateDefaultSubobject<UAISenseConfig_Damage>(TEXT("DamageConfig"));
+	DamageConfig->SetMaxAge(5.0f);
+
+	AIPerceptionComp->ConfigureSense(*DamageConfig);
+	
+	// ─── HEARING CONFIG ───
+	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
+	HearingConfig->HearingRange = 1500.0f;           // 15m duyma mesafesi
+	HearingConfig->SetMaxAge(3.0f);                   // 3sn sonra unut
+	HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+	HearingConfig->DetectionByAffiliation.bDetectNeutrals = false;
+	HearingConfig->DetectionByAffiliation.bDetectFriendlies = false;
+
+	AIPerceptionComp->ConfigureSense(*HearingConfig);
+	// Dominant sense hala Sight — hearing yardımcı
 
 	// Perception component'e sight ekle
 	AIPerceptionComp->ConfigureSense(*SightConfig);
@@ -112,53 +129,88 @@ AActor* AVAAIController::GetTargetActor() const
 
 void AVAAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (!Actor) return;
+	APawn* OwnerPawn = GetPawn();
+	if (!OwnerPawn || !Actor || Actor == OwnerPawn) return;
 
-	if (Stimulus.WasSuccessfullySensed())
+	// Team kontrolü
+	const IGenericTeamAgentInterface* OtherTeam = Cast<IGenericTeamAgentInterface>(Actor);
+	if (OtherTeam && OtherTeam->GetGenericTeamId() == GetGenericTeamId())
 	{
-		// Oyuncuyu gördü → hedef olarak kaydet
-		ACharacter* PlayerChar = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-		if (Actor == PlayerChar)
+		return;
+	}
+
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (!BB) return;
+
+	// Tek stimulus'a güvenme — tüm stimulus'ları kontrol et
+	// HERHANGİ BİRİ hala aktifse → target tut
+	FActorPerceptionBlueprintInfo Info;
+	AIPerceptionComp->GetActorsPerception(Actor, Info);
+
+	bool bAnySensed = false;
+	for (const FAIStimulus& S : Info.LastSensedStimuli)
+	{
+		if (S.WasSuccessfullySensed())
 		{
-			SetTargetActor(Actor);
-			UE_LOG(LogTemp, Log, TEXT("AI Perception: OYUNCU GÖRÜLDÜ!"));
+			bAnySensed = true;
+			break;
 		}
+	}
+
+	if (bAnySensed)
+	{
+		// En az bir duyu hala algılıyor → target set et
+		BB->SetValueAsObject(TEXT("TargetActor"), Actor);
+		BB->SetValueAsVector(TEXT("TargetLocation"), Actor->GetActorLocation());
+		float Dist = FVector::Dist(OwnerPawn->GetActorLocation(), Actor->GetActorLocation());
+		BB->SetValueAsFloat(TEXT("DistanceToTarget"), Dist);
 	}
 	else
 	{
-		// Hedefi kaybetti
-		AActor* CurrentTarget = GetTargetActor();
-		if (Actor == CurrentTarget)
+		// HİÇBİR duyu algılamıyor → target temizle
+		AActor* Current = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
+		if (Current == Actor)
 		{
-			// Hedef kaybedildi — son görülen konumu kaydet
-			if (Blackboard)
-			{
-				Blackboard->SetValueAsVector(BB_TargetLocation, Actor->GetActorLocation());
-			}
-			SetTargetActor(nullptr);
-			UE_LOG(LogTemp, Log, TEXT("AI Perception: Hedef KAYBOLDU"));
+			// Hemen temizleme — son bilinen konumu tut
+			BB->SetValueAsVector(TEXT("TargetLocation"), Actor->GetActorLocation());
+			BB->ClearValue(TEXT("TargetActor"));
+			BB->SetValueAsFloat(TEXT("DistanceToTarget"), 0.0f);
 		}
 	}
 }
 
 ETeamAttitude::Type AVAAIController::GetTeamAttitudeTowards(const AActor& Other) const
 {
-	// Team kontrolü — IGenericTeamAgentInterface üzerinden
-	const IGenericTeamAgentInterface* OtherTeam = Cast<IGenericTeamAgentInterface>(&Other);
-	if (OtherTeam)
-	{
-		FGenericTeamId OtherTeamId = OtherTeam->GetGenericTeamId();
-		FGenericTeamId MyTeamId = GetGenericTeamId();
+	// Other'ın team'ini al
+	const IGenericTeamAgentInterface* OtherTeamAgent = Cast<IGenericTeamAgentInterface>(&Other);
+	if (!OtherTeamAgent) return ETeamAttitude::Neutral;
 
-		if (OtherTeamId == MyTeamId)
-		{
-			return ETeamAttitude::Friendly; // Aynı takım — saldırma
-		}
-		else
-		{
-			return ETeamAttitude::Hostile;  // Farklı takım — düşman
-		}
+	// Aynı takım → Friendly
+	if (OtherTeamAgent->GetGenericTeamId() == TeamId)
+	{
+		return ETeamAttitude::Friendly;
 	}
 
-	return ETeamAttitude::Neutral;
+	// Farklı takım → Hostile
+	return ETeamAttitude::Hostile;
+}
+
+void AVAAIController::SetTargetInBlackboard(AActor* Target)
+{
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (!BB) return;
+
+	if (Target)
+	{
+		BB->SetValueAsObject(TEXT("TargetActor"), Target);
+		BB->SetValueAsVector(TEXT("TargetLocation"), Target->GetActorLocation());
+		float Dist = FVector::Dist(GetPawn()->GetActorLocation(), Target->GetActorLocation());
+		BB->SetValueAsFloat(TEXT("DistanceToTarget"), Dist);
+	}
+	else
+	{
+		BB->ClearValue(TEXT("TargetActor"));
+		BB->ClearValue(TEXT("TargetLocation"));
+		BB->SetValueAsFloat(TEXT("DistanceToTarget"), 0.0f);
+	}
 }
