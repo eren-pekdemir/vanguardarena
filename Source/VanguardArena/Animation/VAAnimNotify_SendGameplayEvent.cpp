@@ -16,7 +16,6 @@ void UVAAnimNotify_SendGameplayEvent::Notify(
 	if (!EventTag.IsValid())
 
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AnimNotify: EventTag boş!"));
 		return;
 	}
 	
@@ -32,7 +31,6 @@ void UVAAnimNotify_SendGameplayEvent::Notify(
 		Payload     
 	);
 
-	UE_LOG(LogTemp, Verbose, TEXT("AnimNotify: Event gönderildi → %s"), *EventTag.ToString());
 }
 
 FString UVAAnimNotify_SendGameplayEvent::GetNotifyName_Implementation() const

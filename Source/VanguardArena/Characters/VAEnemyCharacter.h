@@ -8,6 +8,7 @@
 #include "Characters/VACharacterBase.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Abilities/GameplayAbility.h"
+#include "UI/VAHealthBarComponent.h"
 #include "VAEnemyCharacter.generated.h"
 
 UCLASS()
@@ -24,6 +25,9 @@ public:
     
 	UFUNCTION(BlueprintCallable, Category = "VA|AI")
 	virtual void HandleDeath();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VA|UI")
+	TObjectPtr<UVAHealthBarComponent> HealthBarComponent;
 
 protected:
 	virtual void BeginPlay() override;

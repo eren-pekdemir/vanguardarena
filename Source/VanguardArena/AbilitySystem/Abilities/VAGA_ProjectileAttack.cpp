@@ -108,7 +108,6 @@ void UVAGA_ProjectileAttack::SpawnProjectile()
 			Projectile->DamageSpecHandle = SourceASC->MakeOutgoingSpec(DamageEffect, 1, Context);
 		}
 
-		UE_LOG(LogTemp, Log, TEXT("Projectile spawned → %s"), *Projectile->GetName());
 	}
 }
 

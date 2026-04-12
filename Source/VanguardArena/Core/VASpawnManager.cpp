@@ -24,7 +24,6 @@ void AVASpawnManager::SpawnEnemies()
 {
 	if (!EnemyClass)
 	{
-		UE_LOG(LogTemp, Error, TEXT("SpawnManager: EnemyClass atanmamış!"));
 		return;
 	}
 
@@ -38,8 +37,6 @@ void AVASpawnManager::SpawnEnemies()
 	GetWorld()->GetTimerManager().SetTimer(
 		SpawnTimerHandle, TimerDel, SpawnInterval, true); // true = looping
 
-	UE_LOG(LogTemp, Log, TEXT("SpawnManager: %d düşman spawn başlıyor (%.1fs aralıkla)"),
-		SpawnCount, SpawnInterval);
 }
 
 void AVASpawnManager::SpawnSingleEnemy()
@@ -48,7 +45,6 @@ void AVASpawnManager::SpawnSingleEnemy()
 	{
 		// Yeterli düşman spawn edildi — timer durdur
 		GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
-		UE_LOG(LogTemp, Log, TEXT("SpawnManager: Tüm düşmanlar spawn edildi (%d)"), SpawnedCount);
 		return;
 	}
 
@@ -65,8 +61,6 @@ void AVASpawnManager::SpawnSingleEnemy()
 		AliveEnemies.Add(SpawnedActor);
 		SpawnedCount++;
 
-		UE_LOG(LogTemp, Log, TEXT("SpawnManager: Düşman #%d spawn edildi → %s"),
-			SpawnedCount, *SpawnedActor->GetName());
 	}
 }
 
@@ -87,12 +81,10 @@ void AVASpawnManager::OnEnemyDied(AActor* DeadEnemy)
 	});
 
 	int32 Remaining = AliveEnemies.Num();
-	UE_LOG(LogTemp, Log, TEXT("SpawnManager: Düşman öldü — kalan: %d"), Remaining);
 
 	// Tümü öldü mü?
 	if (Remaining <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SpawnManager: TÜM DÜŞMANLAR ÖLDÜ!"));
 		OnAllEnemiesDead.Broadcast();
 	}
 }

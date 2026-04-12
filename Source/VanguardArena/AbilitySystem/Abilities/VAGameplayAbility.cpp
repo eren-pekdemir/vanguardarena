@@ -2,6 +2,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "VAGameplayTags.h"
+#include "Kismet/GameplayStatics.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Engine/OverlapResult.h"
 
@@ -19,7 +20,6 @@ void UVAGameplayAbility::ActivateAbility(
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    UE_LOG(LogTemp, Log, TEXT("VA Ability Activated: %s"), *GetName());
 }
 
 void UVAGameplayAbility::EndAbility(
@@ -33,11 +33,9 @@ void UVAGameplayAbility::EndAbility(
 
     if (bWasCancelled)
     {
-        UE_LOG(LogTemp, Log, TEXT("VA Ability CANCELLED: %s"), *GetName());
     }
     else
     {
-        UE_LOG(LogTemp, Log, TEXT("VA Ability Ended: %s"), *GetName());
     }
 }
 
@@ -95,5 +93,39 @@ void UVAGameplayAbility::ApplyAOEDamage(
         }
     }
 
-    UE_LOG(LogTemp, Log, TEXT("AOE Damage: Radius=%.0f Hits=%d"), Radius, HitCount);
+}
+
+
+
+void UVAGameplayAbility::PlayHitEffects(const FVector& Location, const FVector& Normal)
+{
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+    // Partikül
+    if (HitParticle)
+    {
+        UGameplayStatics::SpawnEmitterAtLocation(
+            World,
+            HitParticle,
+            Location,
+            Normal.Rotation(),
+            FVector(1.0f),
+            true);
+    }
+
+    // Ses
+    if (HitSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(
+            World, HitSound, Location);
+    }
+
+    // Camera Shake
+    if (HitCameraShake)
+    {
+        UGameplayStatics::PlayWorldCameraShake(
+            World, HitCameraShake, Location,
+            300.0f, 1500.0f, 1.0f);
+    }
 }

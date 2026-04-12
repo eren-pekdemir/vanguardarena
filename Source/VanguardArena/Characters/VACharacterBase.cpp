@@ -56,7 +56,6 @@ void AVACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	if (!InputConfig)
 	{
-		UE_LOG(LogTemp, Error, TEXT("VA: InputConfig NULL!"));
 		return;
 	}
 
@@ -66,7 +65,6 @@ void AVACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		&AVACharacterBase::OnAbilityInputReleased
 	);
 
-	UE_LOG(LogTemp, Log, TEXT("VA: Ability input'lari baglandi."));
 }
 
 void AVACharacterBase::LockOnAction(const FInputActionValue& Value)
@@ -79,28 +77,26 @@ void AVACharacterBase::LockOnAction(const FInputActionValue& Value)
 
 void AVACharacterBase::MoveAction(const FInputActionValue& Value)
 {
-	if (!Controller) return;
+    if (!Controller) return;
 
-	// Saldırı veya dodge sırasında hareket engelle
+    // SADECE dodge sırasında hareket engelle
 	if (AbilitySystemComponent)
 	{
-		if (AbilitySystemComponent->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Attacking) ||
-			AbilitySystemComponent->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Dodging))
+		if (AbilitySystemComponent->HasMatchingGameplayTag(FVAGameplayTags::Get().State_Dodging) ||
+			AbilitySystemComponent->HasMatchingGameplayTag(FVAGameplayTags::Get().State_HeavyAttacking))
 		{
 			return;
 		}
 	}
 
-	FVector2D MovementVector = Value.Get<FVector2D>();
+    FVector2D MovementVector = Value.Get<FVector2D>();
+    const FRotator Rotation = Controller->GetControlRotation();
+    const FRotator YawRotation(0, Rotation.Yaw, 0);
+    const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+    const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddMovementInput(ForwardDirection, MovementVector.Y);
-	AddMovementInput(RightDirection, MovementVector.X);
+    AddMovementInput(ForwardDirection, MovementVector.Y);
+    AddMovementInput(RightDirection, MovementVector.X);
 }
 
 void AVACharacterBase::LookAction(const FInputActionValue& Value)
@@ -115,7 +111,8 @@ void AVACharacterBase::OnAbilityInputPressed(FGameplayTag InputTag)
 {
 	if (!AbilitySystemComponent) return;
 
-	// ─── COMBO CHECK ───
+
+	// Combo check
 	if (CombatComponent && CombatComponent->bIsAttacking &&
 		InputTag.MatchesTagExact(FVAGameplayTags::Get().InputTag_LightAttack))
 	{
@@ -123,33 +120,7 @@ void AVACharacterBase::OnAbilityInputPressed(FGameplayTag InputTag)
 		return;
 	}
 
-	// ─── DODGE: Input yönünü ÖNCE kaydet ───
-	if (InputTag.MatchesTagExact(FVAGameplayTags::Get().InputTag_Dodge) && CombatComponent)
-	{
-		FVector2D MoveInput = FVector2D::ZeroVector;
-
-		if (GetCharacterMovement())
-		{
-			FVector LastInput = GetCharacterMovement()->GetLastInputVector();
-			if (!LastInput.IsNearlyZero())
-			{
-				APlayerController* PC = Cast<APlayerController>(GetController());
-				if (PC)
-				{
-					FRotator CtrlRot(0, PC->GetControlRotation().Yaw, 0);
-					FVector CamFwd = FRotationMatrix(CtrlRot).GetUnitAxis(EAxis::X);
-					FVector CamRight = FRotationMatrix(CtrlRot).GetUnitAxis(EAxis::Y);
-
-					MoveInput.Y = FVector::DotProduct(LastInput, CamFwd);
-					MoveInput.X = FVector::DotProduct(LastInput, CamRight);
-				}
-			}
-		}
-
-		CombatComponent->SetDodgeInput(MoveInput);
-	}
-
-	// ─── NORMAL ABILITY AKTİVASYONU ───
+	// Normal ability aktivasyonu
 	for (FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
 	{
 		if (!Spec.Ability) continue;
@@ -157,10 +128,11 @@ void AVACharacterBase::OnAbilityInputPressed(FGameplayTag InputTag)
 		UVAGameplayAbility* VAAbility = Cast<UVAGameplayAbility>(Spec.Ability);
 		if (VAAbility && VAAbility->InputTag.MatchesTagExact(InputTag))
 		{
-			AbilitySystemComponent->TryActivateAbility(Spec.Handle);
+			bool bSuccess = AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 			return;
 		}
 	}
+
 }
 
 void AVACharacterBase::OnAbilityInputReleased(FGameplayTag InputTag)
@@ -259,5 +231,4 @@ void AVACharacterBase::ApplyHitStop(float Duration, float TimeDilation)
 		false
 	);
 
-	UE_LOG(LogTemp, Verbose, TEXT("HitStop: %.2fs @ %.2f dilation"), Duration, TimeDilation);
 }

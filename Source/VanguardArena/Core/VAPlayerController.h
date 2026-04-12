@@ -17,6 +17,9 @@ class VANGUARDARENA_API AVAPlayerController : public APlayerController
 
 public:
 	AVAPlayerController();
+	
+	UPROPERTY()
+	TObjectPtr<UUserWidget> HUDWidget;
 
 protected:
 	virtual void BeginPlay() override;
@@ -26,4 +29,13 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "VA|Input")
 	int32 CombatMappingPriority = 0;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "VA|UI")
+	TSubclassOf<UUserWidget> HUDWidgetClass;
+
+
+	
+	UFUNCTION(BlueprintCallable, Category = "VA|UI")
+	void UpdateHUDHealth(float CurrentHealth, float MaxHealth);
+	
 };

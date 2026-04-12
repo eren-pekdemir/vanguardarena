@@ -22,7 +22,6 @@ void UVAAnimNotifyState_IFrame::NotifyBegin(
 	if (ASC)
 	{
 		ASC->AddLooseGameplayTag(FVAGameplayTags::Get().State_Invincible);
-		UE_LOG(LogTemp, Log, TEXT("i-Frame: BAŞLADI — State.Invincible eklendi"));
 	}
 }
 
@@ -43,7 +42,6 @@ void UVAAnimNotifyState_IFrame::NotifyEnd(
 	if (ASC)
 	{
 		ASC->RemoveLooseGameplayTag(FVAGameplayTags::Get().State_Invincible);
-		UE_LOG(LogTemp, Log, TEXT("i-Frame: BİTTİ — State.Invincible kaldırıldı"));
 	}
 }
 

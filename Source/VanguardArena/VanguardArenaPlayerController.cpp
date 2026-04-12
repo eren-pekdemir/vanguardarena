@@ -26,7 +26,6 @@ void AVanguardArenaPlayerController::BeginPlay()
 
 		} else {
 
-			UE_LOG(LogVanguardArena, Error, TEXT("Could not spawn mobile controls widget."));
 
 		}
 

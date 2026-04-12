@@ -48,7 +48,6 @@ void UBTService_UpdateCombatState::TickNode(
 		BBComp->ClearValue(TargetActorKey.SelectedKeyName);
 		BBComp->ClearValue(TargetLocationKey.SelectedKeyName);
 		BBComp->SetValueAsFloat(DistanceToTargetKey.SelectedKeyName, 0.0f);
-		UE_LOG(LogTemp, Log, TEXT("BTService: Hedef OLDU — temizlendi"));
 		return;
 	}
 

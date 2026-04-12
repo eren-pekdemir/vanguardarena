@@ -38,7 +38,8 @@ void FVAGameplayTags::AddAllTags()
     AddTag(Ability_Skill2,         "Ability.Skill2",         "Karakter 2. aktif yeteneği");
     AddTag(Ability_Ultimate,       "Ability.Ultimate",       "Ultimate yeteneği");
     AddTag(Ability_Dodge,          "Ability.Dodge",          "Dodge / kaçış yeteneği");
-
+	AddTag(Ability_Attack_Light2, "Ability.Attack.Light2", "İkinci light attack");
+	
     // ─── STATE TAGS ───
     AddTag(State_Dead,             "State.Dead",             "Karakter öldü — ability kullanamaz");
     AddTag(State_Stunned,          "State.Stunned",          "Sersemlemiş — hareket ve ability engelli");
@@ -47,7 +48,7 @@ void FVAGameplayTags::AddAllTags()
     AddTag(State_Channeling,       "State.Channeling",       "Kanal açıyor — hareket engelli");
     AddTag(State_Attacking,        "State.Attacking",        "Saldırı animasyonu sırasında");
 	AddTag(State_Dodging, "State.Dodging", "Dodge sırasında — WASD engelli");	
-	
+	AddTag(State_HeavyAttacking, "State.HeavyAttacking", "Heavy attack sırasında");
 	
     // ─── DAMAGE TAGS ───
     AddTag(Damage_Physical,        "Damage.Physical",        "Fiziksel hasar türü");
@@ -77,6 +78,7 @@ void FVAGameplayTags::AddAllTags()
     AddTag(Event_Montage_ComboWindow, "Event.Montage.ComboWindow", "AnimNotify — combo penceresi açık");
 	AddTag(Event_HitReact, "Event.HitReact", "Hasar alındığında hit reaction tetikler");
 	
+	
 	// ─── COOLDOWN TAGS ───
 	AddTag(Cooldown_Ability_Attack_Light, "Cooldown.Ability.Attack.Light", "Light Attack cooldown");
 	AddTag(Cooldown_Ability_Attack_Heavy, "Cooldown.Ability.Attack.Heavy", "Heavy Attack cooldown");
@@ -84,11 +86,14 @@ void FVAGameplayTags::AddAllTags()
 	AddTag(Cooldown_Ability_Skill2,      "Cooldown.Ability.Skill2",       "Skill 2 cooldown");
 	AddTag(Cooldown_Ability_Ultimate,    "Cooldown.Ability.Ultimate",     "Ultimate cooldown");
 	AddTag(Cooldown_Ability_Dodge,       "Cooldown.Ability.Dodge",        "Dodge cooldown");
+	AddTag(Cooldown_Ability_Elite_Smash, "Cooldown.Ability.Elite.Smash", "Elite Smash cooldown");
+	
 	
 	AddTag(Ability_Boss_ComboAttack, "Ability.Boss.ComboAttack", "Boss combo saldırı");
 	AddTag(Ability_Boss_AOESlam, "Ability.Boss.AOESlam", "Boss AOE yere vuruş");
+	AddTag(Ability_Elite_Smash, "Ability.Elite.Smash", "Elite smash saldırı");
 	
 	AddTag(Event_Montage_SpawnProjectile, "Event.Montage.SpawnProjectile", "Mermi fırlatma anı");
 	AddTag(Event_Montage_AOE, "Event.Montage.AOE", "AOE tetikleme anı");
-	
+	AddTag(Event_Montage_Smash, "Event.Montage.Smash", "Smash vuruş anı");
 }

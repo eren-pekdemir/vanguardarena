@@ -8,6 +8,10 @@
 #include "Net/UnrealNetwork.h"
 #include "VAGameplayTags.h"
 #include "Perception/AISense_Damage.h"
+#include "UI/VAHealthBarComponent.h"
+#include "Core/VAPlayerController.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/ProgressBar.h"
 #include "Characters/VAEnemyCharacter.h"
 
 UVAAttributeSet::UVAAttributeSet()
@@ -79,7 +83,7 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 	AController* SourceController = nullptr;
 	ACharacter* SourceCharacter = nullptr;
 	
-
+	
 	
 	if (SourceASC && SourceASC->AbilityActorInfo.IsValid() && SourceASC->AbilityActorInfo->AvatarActor.IsValid())
 	{
@@ -123,7 +127,6 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 			{
 				// Hasarı sıfırla — dokunulmaz
 				SetIncomingDamage(0.0f);
-				UE_LOG(LogTemp, Log, TEXT("DAMAGE BLOCKED: Target is INVINCIBLE (i-frame)"));
 				return; // Hasar pipeline'ını atla
 			}
 			
@@ -155,17 +158,31 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 				}
 			}
 			
-			UE_LOG(LogTemp, Log, 
-			   TEXT("[Damage] %s → %s | Raw: %.1f | Armor: %.1f (%.0f%% reduction) | Final: %.1f | HP: %.1f → %.1f"),
-			   SourceActor ? *SourceActor->GetName() : TEXT("Unknown"),
-			   TargetActor ? *TargetActor->GetName() : TEXT("Unknown"),
-			   RawDamage,
-			   CurrentArmor,
-			   DamageReduction * 100.0f,
-			   FinalDamage,
-			   CurrentHealth,
-			   NewHealth
-		   );
+			AActor* OwnerActor = GetOwningActor();
+			if (OwnerActor)
+			{
+				UVAHealthBarComponent* HealthBar = OwnerActor->FindComponentByClass<UVAHealthBarComponent>();
+				if (HealthBar)
+				{
+					HealthBar->UpdateHealthBar(GetHealth(), GetMaxHealth());
+				}
+			}
+			APawn* Pawn = Cast<APawn>(OwnerActor);
+			if (Pawn && Pawn->IsPlayerControlled())
+			{
+				AVAPlayerController* VAPC = Cast<AVAPlayerController>(Pawn->GetController());
+				if (VAPC && VAPC->HUDWidget)
+				{
+					UProgressBar* HPBar = Cast<UProgressBar>(
+						VAPC->HUDWidget->GetWidgetFromName(TEXT("PlayerHealthBar")));
+					if (HPBar)
+					{
+						float Pct = (GetMaxHealth() > 0) ? GetHealth() / GetMaxHealth() : 0.0f;
+						HPBar->SetPercent(FMath::Clamp(Pct, 0.0f, 1.0f));
+					}
+				}
+			}
+			
 			// ─── HIT REACTION TETİKLE ───
 			// Hasar aldıktan sonra hedefe hit react event'i gönder
 			if (FinalDamage > 0.0f && GetOwningActor())
@@ -232,10 +249,6 @@ void UVAAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallback
 			float NewHealth = FMath::Min(GetHealth() + HealAmount, GetMaxHealth());
 			SetHealth(NewHealth);
             
-			UE_LOG(LogTemp, Log, 
-				TEXT("[Heal] %s healed for %.1f | HP: %.1f"),
-				TargetActor ? *TargetActor->GetName() : TEXT("Unknown"),
-				HealAmount, NewHealth);
 		}
 	}
 }

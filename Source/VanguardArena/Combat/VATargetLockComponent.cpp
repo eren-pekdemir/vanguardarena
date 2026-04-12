@@ -78,7 +78,6 @@ void UVATargetLockComponent::ToggleLockOn()
 	AActor* Target = FindBestTarget();
 	if (!Target)
 	{
-		UE_LOG(LogTemp, Log, TEXT("LockOn: Hedef bulunamadı"));
 		return;
 	}
 
@@ -99,7 +98,6 @@ void UVATargetLockComponent::ToggleLockOn()
 	}
 
 	OnTargetLockChanged.Broadcast(LockedTarget);
-	UE_LOG(LogTemp, Log, TEXT("LockOn: %s KİLİTLENDİ"), *LockedTarget->GetName());
 }
 
 void UVATargetLockComponent::DisableLockOn()
@@ -121,7 +119,6 @@ void UVATargetLockComponent::DisableLockOn()
 	}
 
 	OnTargetLockChanged.Broadcast(nullptr);
-	UE_LOG(LogTemp, Log, TEXT("LockOn: KİLİT KALDIRILDI"));
 }
 
 AActor* UVATargetLockComponent::FindBestTarget() const

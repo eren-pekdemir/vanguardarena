@@ -64,7 +64,6 @@ void AVAProjectile::OnSphereOverlap(
 
 	bHasHit = true;
 
-	UE_LOG(LogTemp, Log, TEXT("Projectile: %s'ye çarptı"), *OtherActor->GetName());
 
 	if (bExplodeOnImpact)
 	{
@@ -98,7 +97,6 @@ void AVAProjectile::ApplyDamageToTarget(AActor* Target)
 			SourceASC->ApplyGameplayEffectSpecToTarget(
 				*DamageSpecHandle.Data.Get(), TargetASC);
 
-			UE_LOG(LogTemp, Log, TEXT("Projectile: %s'ye hasar uygulandı"), *Target->GetName());
 		}
 	}
 }
@@ -120,5 +118,4 @@ void AVAProjectile::ApplyAOEDamage(const FVector& Location)
 		ApplyDamageToTarget(HitActor);
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Projectile: AOE patlama — yarıçap: %.0f"), ExplosionRadius);
 }

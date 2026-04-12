@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Particles/ParticleSystem.h"
+#include "Sound/SoundBase.h"
 #include "AbilitySystem/Abilities/VAGameplayAbility.h"
 #include "VAGA_MeleeAttack.generated.h"
 
@@ -48,8 +50,6 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VA|Melee")
     float TraceDistance = 150.0f;
     
-    UPROPERTY(EditDefaultsOnly, Category = "VA|Melee")
-    TSubclassOf<UCameraShakeBase> HitCameraShake;
     
     UFUNCTION()
     void OnMontageCompleted();
@@ -77,4 +77,5 @@ private:
     TWeakObjectPtr<UVACombatComponent> CachedCombatComp;
     
     UVACombatComponent* GetCombatComponent() const;
+
 };

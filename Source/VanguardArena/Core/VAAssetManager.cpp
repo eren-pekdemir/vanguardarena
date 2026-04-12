@@ -10,5 +10,4 @@ void UVAAssetManager::StartInitialLoading()
 	
 	FVAGameplayTags::InitializeNativeTags();
 
-	UE_LOG(LogTemp, Log, TEXT("VAAssetManager: Native GameplayTags kaydedildi."));
 }

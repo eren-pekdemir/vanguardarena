@@ -25,6 +25,7 @@ public:
 	FGameplayTag Ability_Skill2;
 	FGameplayTag Ability_Ultimate;
 	FGameplayTag Ability_Dodge;
+	FGameplayTag Ability_Attack_Light2;
 	
 	FGameplayTag State_Dead;
 	FGameplayTag State_Stunned;
@@ -33,6 +34,7 @@ public:
 	FGameplayTag State_Channeling;       
 	FGameplayTag State_Attacking;
 	FGameplayTag State_Dodging;
+	FGameplayTag State_HeavyAttacking;
 	
 	FGameplayTag Damage_Physical;
 	FGameplayTag Damage_Fire;
@@ -64,12 +66,15 @@ public:
 	FGameplayTag Cooldown_Ability_Skill2;
 	FGameplayTag Cooldown_Ability_Ultimate;
 	FGameplayTag Cooldown_Ability_Dodge;
+	FGameplayTag Cooldown_Ability_Elite_Smash;
 	
 	FGameplayTag Ability_Boss_ComboAttack;
 	FGameplayTag Ability_Boss_AOESlam;
+	FGameplayTag Ability_Elite_Smash;
 	
 	FGameplayTag Event_Montage_SpawnProjectile;
 	FGameplayTag Event_Montage_AOE;
+	FGameplayTag Event_Montage_Smash;
 	
 private:
 	static FVAGameplayTags GameplayTags;

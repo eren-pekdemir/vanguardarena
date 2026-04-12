@@ -34,7 +34,6 @@ void AVABossCharacter::SetPhase(EVABossPhase NewPhase)
 	EVABossPhase OldPhase = CurrentPhase;
 	CurrentPhase = NewPhase;
 
-	UE_LOG(LogTemp, Warning, TEXT("BOSS: Phase değişti → %d"), (uint8)NewPhase);
 
 	// Phase buff uygula
 	if (AbilitySystemComponent)
@@ -60,7 +59,6 @@ void AVABossCharacter::SetPhase(EVABossPhase NewPhase)
 			if (Spec.IsValid())
 			{
 				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-				UE_LOG(LogTemp, Log, TEXT("BOSS: Phase buff uygulandı"));
 			}
 		}
 	}
@@ -92,7 +90,6 @@ void AVABossCharacter::SetPhase(EVABossPhase NewPhase)
 						AbilitySystemComponent->RemoveLooseGameplayTag(
 							FVAGameplayTags::Get().State_Invincible);
 					}
-					UE_LOG(LogTemp, Log, TEXT("BOSS: Phase geçiş tamamlandı"));
 				},
 				Duration, false);
 		}
@@ -142,7 +139,6 @@ void AVABossCharacter::SpawnMinions()
 
 		if (Minion)
 		{
-			UE_LOG(LogTemp, Log, TEXT("BOSS: Minion #%d spawn edildi"), i + 1);
 		}
 	}
 }
@@ -152,7 +148,6 @@ void AVABossCharacter::HandleDeath()
 	CurrentPhase = EVABossPhase::Dead;
 	OnBossPhaseChanged.Broadcast(EVABossPhase::Dead);
 
-	UE_LOG(LogTemp, Warning, TEXT("=== BOSS ÖLDÜ ==="));
 
 	// Parent death logic (ragdoll, BT stop, destroy)
 	Super::HandleDeath();

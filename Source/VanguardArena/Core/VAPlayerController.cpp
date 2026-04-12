@@ -4,6 +4,7 @@
 #include "Core/VAPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Blueprint/UserWidget.h"
 
 AVAPlayerController::AVAPlayerController()
 {
@@ -23,11 +24,39 @@ void AVAPlayerController::BeginPlay()
 		{
 			InputSubsystem->AddMappingContext(CombatMappingContext, CombatMappingPriority);
 
-			UE_LOG(LogTemp, Log, TEXT("VA: Combat IMC eklendi (Priority: %d)"), CombatMappingPriority);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("VA: Combat IMC eksik! PlayerController Blueprint'te ayarla."));
 		}
+		
+		
+	}
+	
+	if (HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
+		if (HUDWidget)
+		{
+			HUDWidget->AddToViewport();
+		}
+	}
+}
+
+void AVAPlayerController::UpdateHUDHealth(float CurrentHealth, float MaxHealth)
+{
+	if (!HUDWidget) return;
+
+	// Blueprint'teki UpdateHealth fonksiyonunu çağır
+	UFunction* Func = HUDWidget->FindFunction(TEXT("UpdateHealth"));
+	if (Func)
+	{
+		struct
+		{
+			float Current;
+			float Max;
+		} Params;
+		Params.Current = CurrentHealth;
+		Params.Max = MaxHealth;
+		HUDWidget->ProcessEvent(Func, &Params);
 	}
 }

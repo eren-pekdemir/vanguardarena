@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Core/VASpawnManager.h"
+#include "WaveSystem/VAWaveDirector.h"
 
 AVAEnemyCharacter::AVAEnemyCharacter()
 {
@@ -22,6 +23,9 @@ AVAEnemyCharacter::AVAEnemyCharacter()
 	AIControllerClass = AVAAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	
+	HealthBarComponent = CreateDefaultSubobject<UVAHealthBarComponent>(TEXT("HealthBar"));
+	HealthBarComponent->SetupAttachment(GetRootComponent());
+	HealthBarComponent->SetRelativeLocation(FVector(0, 0, 120));
 }
 
 void AVAEnemyCharacter::BeginPlay()
@@ -46,7 +50,6 @@ void AVAEnemyCharacter::GiveStartupAbilities()
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Enemy: %d ability verildi"), StartupAbilities.Num());
 }
 
 void AVAEnemyCharacter::ApplyDefaultStats()
@@ -62,7 +65,6 @@ void AVAEnemyCharacter::ApplyDefaultStats()
 	if (Spec.IsValid())
 	{
 		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-		UE_LOG(LogTemp, Log, TEXT("Enemy: Default stat'lar uygulandı"));
 	}
 }
 
@@ -101,7 +103,21 @@ void AVAEnemyCharacter::HandleDeath()
 			SpawnMgr->OnEnemyDied(this);
 		}
 	}
+	
+	TArray<AActor*> WaveDirectors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AVAWaveDirector::StaticClass(), WaveDirectors);
+	for (AActor* WD : WaveDirectors)
+	{
+		AVAWaveDirector* Director = Cast<AVAWaveDirector>(WD);
+		if (Director)
+		{
+			Director->OnEnemyDied(this);
+		}
+	}
+	if (HealthBarComponent)
+	{
+		HealthBarComponent->SetVisibility(false);
+	}
 
 	SetLifeSpan(5.0f);
-	UE_LOG(LogTemp, Log, TEXT("Enemy %s: ÖLDÜ"), *GetName());
 }

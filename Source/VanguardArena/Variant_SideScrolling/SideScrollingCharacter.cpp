@@ -279,7 +279,6 @@ void ASideScrollingCharacter::MultiJump()
 		// are we still within coyote time frames?
 		if (GetWorld()->GetTimeSeconds() - LastFallTime < MaxCoyoteTime)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Coyote Jump"));
 
 			// use the built-in CMC functionality to do the jump
 			Jump();

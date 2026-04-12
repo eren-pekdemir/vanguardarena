@@ -70,7 +70,6 @@ void AVAAIController::OnPossess(APawn* InPawn)
 
 	if (!BehaviorTreeAsset)
 	{
-		UE_LOG(LogTemp, Error, TEXT("AIController: BehaviorTree atanmamış!"));
 		return;
 	}
 
@@ -88,7 +87,17 @@ void AVAAIController::OnPossess(APawn* InPawn)
 	if (BTComp)
 	{
 		BTComp->StartTree(*BehaviorTreeAsset);
-		UE_LOG(LogTemp, Log, TEXT("AIController: BT başlatıldı — %s"), *BehaviorTreeAsset->GetName());
+	}
+	
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	if (PlayerPawn && GetBlackboardComponent())
+	{
+		GetBlackboardComponent()->SetValueAsObject(TEXT("TargetActor"), PlayerPawn);
+		GetBlackboardComponent()->SetValueAsVector(TEXT("TargetLocation"), PlayerPawn->GetActorLocation());
+		float Dist = FVector::Dist(InPawn->GetActorLocation(), PlayerPawn->GetActorLocation());
+		GetBlackboardComponent()->SetValueAsFloat(TEXT("DistanceToTarget"), Dist);
+
+		SetFocus(PlayerPawn);
 	}
 }
 
@@ -100,6 +109,8 @@ void AVAAIController::OnUnPossess()
 	{
 		BTComp->StopTree();
 	}
+	
+	
 
 	Super::OnUnPossess();
 }
@@ -113,7 +124,6 @@ void AVAAIController::SetTargetActor(AActor* Target)
 		if (Target)
 		{
 			Blackboard->SetValueAsVector(BB_TargetLocation, Target->GetActorLocation());
-			UE_LOG(LogTemp, Log, TEXT("AI: Target → %s"), *Target->GetName());
 		}
 	}
 }
@@ -159,22 +169,25 @@ void AVAAIController::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 
 	if (bAnySensed)
 	{
-		// En az bir duyu hala algılıyor → target set et
 		BB->SetValueAsObject(TEXT("TargetActor"), Actor);
 		BB->SetValueAsVector(TEXT("TargetLocation"), Actor->GetActorLocation());
 		float Dist = FVector::Dist(OwnerPawn->GetActorLocation(), Actor->GetActorLocation());
 		BB->SetValueAsFloat(TEXT("DistanceToTarget"), Dist);
+    
+		// Hedefe sürekli bak
+		SetFocus(Actor);
 	}
 	else
 	{
-		// HİÇBİR duyu algılamıyor → target temizle
 		AActor* Current = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
 		if (Current == Actor)
 		{
-			// Hemen temizleme — son bilinen konumu tut
 			BB->SetValueAsVector(TEXT("TargetLocation"), Actor->GetActorLocation());
 			BB->ClearValue(TEXT("TargetActor"));
 			BB->SetValueAsFloat(TEXT("DistanceToTarget"), 0.0f);
+        
+			// Focus temizle
+			ClearFocus(EAIFocusPriority::Gameplay);
 		}
 	}
 }

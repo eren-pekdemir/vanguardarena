@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "Particles/ParticleSystem.h"
+#include "Sound/SoundBase.h"
 #include "VAGameplayAbility.generated.h"
 
 UENUM(BlueprintType)
@@ -63,4 +65,20 @@ protected:
     
     UPROPERTY(EditDefaultsOnly, Category = "VA|Effects")
     TArray<TSubclassOf<UGameplayEffect>> AdditionalEffectsOnHit;
+    
+    // Vuruş partikülü (Cascade)
+    UPROPERTY(EditDefaultsOnly, Category = "VA|VFX")
+    TObjectPtr<UParticleSystem> HitParticle;
+
+    // Vuruş sesi
+    UPROPERTY(EditDefaultsOnly, Category = "VA|VFX")
+    TObjectPtr<USoundBase> HitSound;
+
+    // Camera Shake
+    UPROPERTY(EditDefaultsOnly, Category = "VA|VFX")
+    TSubclassOf<UCameraShakeBase> HitCameraShake;
+
+    // Helper fonksiyon — herhangi bir ability çağırabilir
+    UFUNCTION(BlueprintCallable, Category = "VA|VFX")
+    void PlayHitEffects(const FVector& Location, const FVector& Normal);
 };

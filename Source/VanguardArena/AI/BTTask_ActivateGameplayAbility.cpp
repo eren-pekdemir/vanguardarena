@@ -32,7 +32,6 @@ EBTNodeResult::Type UBTTask_ActivateGameplayAbility::ExecuteTask(
 	// Tag ile ability bul ve aktive et
 	if (!AbilityTag.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("BTTask_ActivateAbility: AbilityTag gecersiz!"));
 		return EBTNodeResult::Failed;
 	}
 
@@ -49,12 +48,9 @@ EBTNodeResult::Type UBTTask_ActivateGameplayAbility::ExecuteTask(
 
 	if (!bActivated)
 	{
-		UE_LOG(LogTemp, Verbose, TEXT("BTTask_ActivateAbility: Ability aktive edilemedi (Tag: %s)"),
-			*AbilityTag.ToString());
 		return EBTNodeResult::Failed;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("BTTask_ActivateAbility: %s AKTIVE EDILDI"), *AbilityTag.ToString());
 
 	// Bekleme istemiyorsa hemen basarili don
 	if (!bWaitForAbilityEnd)
@@ -79,7 +75,6 @@ void UBTTask_ActivateGameplayAbility::OnAbilityEnded(
 	if (AbilityEndedData.AbilityThatEnded &&
 		AbilityEndedData.AbilityThatEnded->AbilityTags.HasTag(AbilityTag))
 	{
-		UE_LOG(LogTemp, Log, TEXT("BTTask_ActivateAbility: %s BITTI"), *AbilityTag.ToString());
 
 		// Delegate temizle
 		APawn* Pawn = OwnerComp->GetAIOwner() ? OwnerComp->GetAIOwner()->GetPawn() : nullptr;
